@@ -1,0 +1,169 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+	const products = await getCollection('productos');
+	return products.map((product) => ({
+		params: { slug: product.id },
+		props: { product },
+	}));
+}
+
+const { product } = Astro.props;
+const { nombre, categoria, descripcion, imagen, imagenAlt, specs } = product.data;
+const { Content } = await render(product);
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const imageURL = new URL(imagen.src, Astro.site);
+
+const productSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'Product',
+	name: nombre,
+	description: descripcion,
+	category: categoria,
+	image: imageURL.toString(),
+	url: canonicalURL.toString(),
+	brand: {
+		'@type': 'Brand',
+		name: 'Zolven',
+	},
+	...(Object.keys(specs).length > 0
+		? {
+				additionalProperty: Object.entries(specs).map(([name, value]) => ({
+					'@type': 'PropertyValue',
+					name,
+					value,
+				})),
+			}
+		: {}),
+};
+---
+
+<Layout title={nombre} description={descripcion} image={imagen.src} type="product">
+	<Fragment slot="head">
+		<script type="application/ld+json" set:html={JSON.stringify(productSchema)} is:inline />
+	</Fragment>
+
+	<section class="product-detail">
+		<div class="container product-detail__inner">
+			<div class="product-detail__image">
+				<Image src={imagen} alt={imagenAlt ?? nombre} width={640} height={480} />
+			</div>
+
+			<div class="product-detail__body">
+				<a href="/catalogo" class="product-detail__back">← Volver al catálogo</a>
+				<p class="eyebrow">{categoria}</p>
+				<h1>{nombre}</h1>
+				<p class="product-detail__desc">{descripcion}</p>
+
+				{
+					Object.keys(specs).length > 0 && (
+						<dl class="product-detail__specs">
+							{Object.entries(specs).map(([key, value]) => (
+								<div class="product-detail__spec">
+									<dt>{key}</dt>
+									<dd>{value}</dd>
+								</div>
+							))}
+						</dl>
+					)
+				}
+
+				<a href="/#hablemos" class="btn btn-primary">Solicitar cotización</a>
+			</div>
+		</div>
+
+		<div class="container">
+			<div class="product-detail__content">
+				<Content />
+			</div>
+		</div>
+	</section>
+</Layout>
+
+<style>
+	.product-detail {
+		padding-top: 56px;
+	}
+
+	.product-detail__inner {
+		display: grid;
+		grid-template-columns: 0.9fr 1.1fr;
+		gap: 48px;
+		margin-bottom: 48px;
+	}
+
+	.product-detail__image {
+		border-radius: var(--radius-md);
+		overflow: hidden;
+		aspect-ratio: 4 / 3;
+	}
+
+	.product-detail__image :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.product-detail__back {
+		display: inline-block;
+		font-size: 0.85rem;
+		color: var(--color-graphite-soft);
+		text-decoration: none;
+		margin-bottom: 16px;
+	}
+
+	.product-detail__body h1 {
+		font-size: clamp(1.6rem, 3vw, 2.2rem);
+		margin: 10px 0 16px;
+	}
+
+	.product-detail__desc {
+		color: var(--color-graphite-soft);
+		line-height: 1.65;
+		margin-bottom: 24px;
+	}
+
+	.product-detail__specs {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 14px 24px;
+		margin: 0 0 32px;
+		border-top: 1px solid var(--color-border);
+		padding-top: 20px;
+	}
+
+	.product-detail__spec dt {
+		font-family: var(--font-heading);
+		font-weight: 700;
+		font-size: 0.8rem;
+		color: var(--color-graphite-soft);
+	}
+
+	.product-detail__spec dd {
+		margin: 2px 0 0;
+		font-size: 0.95rem;
+	}
+
+	.product-detail__content {
+		max-width: 70ch;
+		line-height: 1.7;
+		color: var(--color-graphite-soft);
+		padding-bottom: 64px;
+		border-top: 1px solid var(--color-border);
+		padding-top: 32px;
+	}
+
+	@media (max-width: 860px) {
+		.product-detail__inner {
+			grid-template-columns: 1fr;
+		}
+
+		.product-detail__specs {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

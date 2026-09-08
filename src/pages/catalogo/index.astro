@@ -1,0 +1,138 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+
+const allProducts = await getCollection('productos');
+
+const categories = [
+	'Núcleos Laminados',
+	'Acero Eléctrico',
+	'Núcleos tipo C',
+	'Núcleos Amorfos',
+	'Núcleos tipo E',
+	'Uni-core',
+	'Núcleos Toroidales',
+] as const;
+---
+
+<Layout
+	title="Catálogo"
+	description="Explora el catálogo de núcleos, acero eléctrico y componentes que Zolven ofrece directo de fabricantes certificados."
+>
+	<section class="catalog-page">
+		<div class="container">
+			<header class="catalog-page__header">
+				<p class="eyebrow">Catálogo</p>
+				<h1>Materiales y componentes disponibles</h1>
+			</header>
+
+			<nav class="catalog-page__filters" aria-label="Filtrar por categoría" id="catalog-filters">
+				<button type="button" data-category="" class="is-active">Todas</button>
+				{categories.map((cat) => <button type="button" data-category={cat}>{cat}</button>)}
+			</nav>
+
+			<div class="catalog-page__grid" id="catalog-grid">
+				{
+					allProducts.map((product) => (
+						<div data-category={product.data.categoria}>
+							<ProductCard product={product} />
+						</div>
+					))
+				}
+			</div>
+
+			<p class="catalog-page__empty" id="catalog-empty" hidden>
+				No hay productos en esta categoría todavía.
+			</p>
+		</div>
+	</section>
+</Layout>
+
+<script>
+	const filters = document.getElementById('catalog-filters');
+	const grid = document.getElementById('catalog-grid');
+	const empty = document.getElementById('catalog-empty');
+
+	filters?.addEventListener('click', (event) => {
+		const button = (event.target as HTMLElement).closest('button');
+		if (!button || !grid || !empty) return;
+
+		filters.querySelectorAll('button').forEach((b) => b.classList.remove('is-active'));
+		button.classList.add('is-active');
+
+		const category = button.dataset.category ?? '';
+		const items = Array.from(grid.children) as HTMLElement[];
+		let visibleCount = 0;
+
+		for (const item of items) {
+			const matches = !category || item.dataset.category === category;
+			item.hidden = !matches;
+			if (matches) visibleCount++;
+		}
+
+		empty.hidden = visibleCount > 0;
+	});
+</script>
+
+<style>
+	.catalog-page {
+		padding-top: 56px;
+	}
+
+	.catalog-page__header h1 {
+		font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+		margin-top: 10px;
+		margin-bottom: 32px;
+	}
+
+	.catalog-page__filters {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-bottom: 40px;
+	}
+
+	.catalog-page__filters button {
+		text-decoration: none;
+		font-family: var(--font-body);
+		font-size: 0.85rem;
+		font-weight: 500;
+		padding: 8px 16px;
+		border-radius: 999px;
+		border: 1px solid var(--color-border);
+		background: var(--color-white);
+		color: var(--color-graphite-soft);
+		cursor: pointer;
+	}
+
+	.catalog-page__filters button.is-active {
+		background: var(--color-graphite);
+		border-color: var(--color-graphite);
+		color: var(--color-white);
+	}
+
+	.catalog-page__grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 24px;
+		padding-bottom: 24px;
+	}
+
+	.catalog-page__empty {
+		color: var(--color-graphite-soft);
+		padding-bottom: 40px;
+	}
+
+	@media (max-width: 860px) {
+		.catalog-page__grid {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	@media (max-width: 560px) {
+		.catalog-page__grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

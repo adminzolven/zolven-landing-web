@@ -1,0 +1,92 @@
+---
+const pillars = [
+	{
+		title: 'Fabricantes certificados',
+		text: 'Trabajamos solo con plantas certificadas bajo normas internacionales (IEC), verificadas antes de entrar a nuestro catálogo.',
+	},
+	{
+		title: 'Sin intermediarios',
+		text: 'Negociamos directo con fábrica, lo que se traduce en mejores tiempos de entrega y precios reales de origen.',
+	},
+	{
+		title: 'Ficha técnica clara',
+		text: 'Cada material y componente llega con sus especificaciones completas, listas para tu proceso de ingeniería.',
+	},
+];
+---
+
+<section id="nosotros" class="nosotros">
+	<div class="container nosotros__inner">
+		<div class="nosotros__intro">
+			<p class="eyebrow">Nosotros</p>
+			<h2>El puente entre tu empresa y la fábrica</h2>
+			<p class="nosotros__text">
+				Zolven conecta a empresas del sector eléctrico con fabricantes
+				globales certificados de materiales y componentes — núcleos
+				laminados, acero eléctrico, núcleos tipo C, amorfos, tipo E, uni-core
+				y toroidales — eliminando intermediarios y simplificando el
+				abastecimiento de principio a fin.
+			</p>
+		</div>
+
+		<div class="nosotros__grid">
+			{
+				pillars.map((pillar) => (
+					<article class="nosotros__card">
+						<h3>{pillar.title}</h3>
+						<p>{pillar.text}</p>
+					</article>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.nosotros__inner {
+		display: grid;
+		gap: 48px;
+	}
+
+	.nosotros__intro h2 {
+		font-size: clamp(1.6rem, 3vw, 2.2rem);
+		margin: 12px 0 16px;
+		max-width: 20ch;
+	}
+
+	.nosotros__text {
+		font-size: 1.05rem;
+		line-height: 1.65;
+		color: var(--color-graphite-soft);
+		max-width: 62ch;
+	}
+
+	.nosotros__grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 24px;
+	}
+
+	.nosotros__card {
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		padding: 28px;
+	}
+
+	.nosotros__card h3 {
+		font-size: 1.1rem;
+		margin-bottom: 10px;
+	}
+
+	.nosotros__card p {
+		font-size: 0.95rem;
+		line-height: 1.6;
+		color: var(--color-graphite-soft);
+	}
+
+	@media (max-width: 860px) {
+		.nosotros__grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

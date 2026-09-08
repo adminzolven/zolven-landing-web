@@ -1,0 +1,168 @@
+---
+import Isotipo from '../assets/logo/isotipo.svg';
+---
+
+<section class="hero">
+	<div class="container hero__inner">
+		<div class="hero__copy">
+			<p class="eyebrow">Materiales y componentes eléctricos</p>
+			<h1>
+				Conectamos tu empresa con fabricantes certificados, sin intermediarios
+			</h1>
+			<p class="hero__subtitle">
+				Núcleos laminados, acero eléctrico de grano orientado y no orientado,
+				núcleos tipo C, amorfos, tipo E, uni-core y toroidales — directo de
+				fábrica, con la ficha técnica que necesitas para tu proyecto.
+			</p>
+			<a href="/#hablemos" class="btn btn-primary">Contáctanos</a>
+		</div>
+
+		<div class="hero__visual" aria-hidden="true">
+			<div class="hero__stage">
+				<Isotipo class="hero__isotipo" />
+			</div>
+		</div>
+	</div>
+
+	<div class="hero__clients">
+		<div class="container hero__clients-inner">
+			<p class="hero__clients-label">Empresas que confían en Zolven</p>
+			<ul class="hero__clients-list">
+				<li>ElectroPartners</li>
+				<li>GridWorks</li>
+				<li>TransCore Ind.</li>
+				<li>Voltium</li>
+				<li>Ferronova</li>
+			</ul>
+		</div>
+	</div>
+</section>
+
+<style>
+	.hero {
+		background: var(--color-hero-bg);
+		color: var(--color-white);
+	}
+
+	.hero__inner {
+		display: grid;
+		grid-template-columns: 1.1fr 0.9fr;
+		align-items: center;
+		gap: 48px;
+		padding-top: 64px;
+		padding-bottom: 80px;
+	}
+
+	.hero__copy h1 {
+		font-size: clamp(2rem, 4vw, 3.1rem);
+		color: var(--color-white);
+		margin: 16px 0 20px;
+	}
+
+	.hero__subtitle {
+		font-family: var(--font-body);
+		font-size: 1.05rem;
+		line-height: 1.6;
+		color: #d3d5d8;
+		max-width: 46ch;
+		margin-bottom: 32px;
+	}
+
+	.hero__visual {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		--logo-graphite: #ffffff;
+	}
+
+	.hero__stage {
+		perspective: 900px;
+		width: min(320px, 60vw);
+	}
+
+	.hero__isotipo {
+		width: 100%;
+		height: auto;
+		filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.35));
+		animation: spin-3d 7s linear infinite;
+		transform-style: preserve-3d;
+	}
+
+	@keyframes spin-3d {
+		from {
+			transform: rotateY(0deg);
+		}
+		to {
+			transform: rotateY(360deg);
+		}
+	}
+
+	.hero__clients {
+		border-top: 1px solid rgba(255, 255, 255, 0.08);
+	}
+
+	.hero__clients-inner {
+		padding: 28px 24px;
+		display: flex;
+		align-items: center;
+		gap: 32px;
+		flex-wrap: wrap;
+	}
+
+	.hero__clients-label {
+		font-family: var(--font-body);
+		font-size: 0.8rem;
+		color: #9a9ea3;
+		white-space: nowrap;
+	}
+
+	.hero__clients-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 32px;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		filter: grayscale(1);
+		opacity: 0.45;
+	}
+
+	.hero__clients-list li {
+		font-family: var(--font-heading);
+		font-weight: 700;
+		font-size: 1.05rem;
+		color: var(--color-white);
+	}
+
+	@media (max-width: 860px) {
+		.hero__inner {
+			grid-template-columns: 1fr;
+			text-align: center;
+			padding-top: 48px;
+		}
+
+		.hero__copy {
+			order: 1;
+		}
+
+		.hero__subtitle {
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		.hero__visual {
+			order: 0;
+		}
+
+		.hero__stage {
+			width: 200px;
+			margin: 0 auto;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.hero__isotipo {
+			animation: none;
+		}
+	}
+</style>

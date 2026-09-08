@@ -1,0 +1,125 @@
+:root {
+	/* Brand colors */
+	--color-primary: #f28123;
+	--color-graphite: #2b2f33;
+	--color-white: #ffffff;
+
+	/* Secondary palette — TBD, wire up here once defined */
+	--color-secondary-1: initial;
+	--color-secondary-2: initial;
+
+	/* Derived surface colors */
+	--color-hero-bg: #2a2d30;
+	--color-footer-bg: #32363a;
+	--color-graphite-soft: #565c63;
+	--color-border: #e2e4e7;
+	--color-bg: #ffffff;
+	--color-bg-muted: #f7f7f8;
+
+	/* Typography */
+	--font-heading: 'Sora', system-ui, sans-serif;
+	--font-body: 'IBM Plex Sans', system-ui, sans-serif;
+
+	/* Layout */
+	--radius-sm: 6px;
+	--radius-md: 12px;
+	--container-width: 1180px;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-body);
+	font-weight: 400;
+	color: var(--color-graphite);
+	background: var(--color-bg);
+	-webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--font-heading);
+	font-weight: 800;
+	line-height: 1.1;
+	margin: 0;
+}
+
+p {
+	margin: 0;
+}
+
+a {
+	color: inherit;
+}
+
+img,
+svg {
+	display: block;
+	max-width: 100%;
+}
+
+button {
+	font-family: inherit;
+}
+
+.container {
+	width: 100%;
+	max-width: var(--container-width);
+	margin: 0 auto;
+	padding: 0 24px;
+}
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	font-family: var(--font-heading);
+	font-weight: 700;
+	font-size: 0.95rem;
+	border: none;
+	border-radius: var(--radius-sm);
+	padding: 14px 28px;
+	cursor: pointer;
+	text-decoration: none;
+	transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-primary {
+	background: var(--color-primary);
+	color: var(--color-white);
+}
+
+.btn-primary:hover {
+	background: #d96f18;
+	transform: translateY(-1px);
+}
+
+.eyebrow {
+	font-family: var(--font-heading);
+	font-weight: 700;
+	font-size: 0.8rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--color-primary);
+}
+
+section {
+	padding: 88px 0;
+}
+
+@media (max-width: 720px) {
+	section {
+		padding: 56px 0;
+	}
+}

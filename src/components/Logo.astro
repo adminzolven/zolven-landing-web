@@ -1,0 +1,41 @@
+---
+import Isotipo from '../assets/logo/isotipo.svg';
+import Wordmark from '../assets/logo/wordmark.svg';
+
+interface Props {
+	/** Height in pixels of the isotipo; the wordmark scales to match. */
+	size?: number;
+	/** "dark" (default) for light backgrounds, "light" for dark backgrounds — recolors the graphite shape only, via CSS variables, the artwork itself is untouched. */
+	variant?: 'dark' | 'light';
+	class?: string;
+}
+
+const { size = 40, variant = 'dark', class: className } = Astro.props;
+const graphiteVar = variant === 'light' ? '#ffffff' : undefined;
+---
+
+<a
+	href="/"
+	class:list={['logo', className]}
+	aria-label="Zolven — inicio"
+	style={graphiteVar ? `--logo-graphite: ${graphiteVar}` : undefined}
+>
+	<Isotipo class="logo__isotipo" style={`height: ${size}px`} />
+	<Wordmark class="logo__wordmark" style={`height: ${size * 0.62}px`} />
+</a>
+
+<style>
+	.logo {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5em;
+		text-decoration: none;
+		line-height: 0;
+	}
+
+	.logo__isotipo,
+	.logo__wordmark {
+		width: auto;
+		display: block;
+	}
+</style>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+	<rect width="800" height="600" fill="#2b2f33"/>
+	<g fill="none" stroke="#f28123" stroke-width="8">
+		<rect x="300" y="180" width="200" height="240" rx="100"/>
+		<rect x="320" y="200" width="160" height="200" rx="80"/>
+		<rect x="340" y="220" width="120" height="160" rx="60"/>
+	</g>
+	<text x="40" y="550" font-family="sans-serif" font-size="28" font-weight="700" fill="#ffffff" opacity="0.85">Núcleo Amorfo</text>
+</svg>

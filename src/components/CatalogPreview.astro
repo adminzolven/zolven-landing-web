@@ -1,0 +1,71 @@
+---
+import { getCollection } from 'astro:content';
+import ProductCard from './ProductCard.astro';
+
+const allProducts = await getCollection('productos');
+const featured = allProducts.filter((p) => p.data.destacado).slice(0, 6);
+const products = featured.length > 0 ? featured : allProducts.slice(0, 6);
+---
+
+<section id="catalogo" class="catalog-preview">
+	<div class="container">
+		<div class="catalog-preview__header">
+			<div>
+				<p class="eyebrow">Catálogo</p>
+				<h2>Materiales y componentes listos para tu proyecto</h2>
+			</div>
+			<a href="/catalogo" class="catalog-preview__link">Ver catálogo completo →</a>
+		</div>
+
+		<div class="catalog-preview__grid">
+			{products.map((product) => <ProductCard product={product} />)}
+		</div>
+	</div>
+</section>
+
+<style>
+	.catalog-preview {
+		background: var(--color-bg-muted);
+	}
+
+	.catalog-preview__header {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 24px;
+		margin-bottom: 40px;
+		flex-wrap: wrap;
+	}
+
+	.catalog-preview__header h2 {
+		font-size: clamp(1.6rem, 3vw, 2.2rem);
+		margin-top: 12px;
+		max-width: 26ch;
+	}
+
+	.catalog-preview__link {
+		font-family: var(--font-heading);
+		font-weight: 700;
+		color: var(--color-primary);
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.catalog-preview__grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 24px;
+	}
+
+	@media (max-width: 860px) {
+		.catalog-preview__grid {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	@media (max-width: 560px) {
+		.catalog-preview__grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
