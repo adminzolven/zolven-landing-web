@@ -83,7 +83,7 @@ const productSchema = {
 					>
 						{
 							images.map((img, i) => (
-								<div class={`mainstage__slide ${i === 0 ? 'is-active' : ''}`}>
+								<div class:list={['mainstage__slide', { 'is-active': i === 0 }]}>
 									<Image src={img} alt={imagenAlt ?? nombre} width={640} height={480} />
 								</div>
 							))
@@ -111,7 +111,7 @@ const productSchema = {
 						images.length > 1 && (
 							<div class="product-detail__thumbs">
 								{images.map((img, i) => (
-									<label for={`${galleryName}-${i}`} class="thumb">
+									<label for={`${galleryName}-${i}`} class:list={['thumb', { 'is-active': i === 0 }]}>
 										<Image src={img} alt="" width={120} height={120} />
 									</label>
 								))}
@@ -171,16 +171,27 @@ const productSchema = {
 
 		const prevBtn = gallery.querySelector<HTMLButtonElement>('.mainstage__arrow--prev');
 		const nextBtn = gallery.querySelector<HTMLButtonElement>('.mainstage__arrow--next');
+		const slides = Array.from(gallery.querySelectorAll<HTMLElement>('.mainstage__slide'));
+		const thumbs = Array.from(gallery.querySelectorAll<HTMLElement>('.thumb'));
 
 		const currentIndex = () => {
 			const idx = radios.findIndex((radio) => radio.checked);
 			return idx === -1 ? 0 : idx;
 		};
 
+		const syncActive = () => {
+			const idx = currentIndex();
+			slides.forEach((slide, i) => slide.classList.toggle('is-active', i === idx));
+			thumbs.forEach((thumb, i) => thumb.classList.toggle('is-active', i === idx));
+		};
+
 		const goTo = (index: number) => {
 			const next = ((index % radios.length) + radios.length) % radios.length;
 			radios[next].checked = true;
+			syncActive();
 		};
+
+		radios.forEach((radio) => radio.addEventListener('change', syncActive));
 
 		prevBtn?.addEventListener('click', () => goTo(currentIndex() - 1));
 		nextBtn?.addEventListener('click', () => goTo(currentIndex() + 1));
@@ -326,7 +337,7 @@ const productSchema = {
 	.mainstage__slide :global(img) {
 		width: 100%;
 		height: 100%;
-		object-fit: cover;
+		object-fit: contain;
 	}
 
 	.product-detail__thumbs {
@@ -372,21 +383,7 @@ const productSchema = {
 		width: 100%;
 	}
 
-	.gallery-radio:nth-of-type(1):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(1),
-	.gallery-radio:nth-of-type(2):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(2),
-	.gallery-radio:nth-of-type(3):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(3),
-	.gallery-radio:nth-of-type(4):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(4),
-	.gallery-radio:nth-of-type(5):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(5),
-	.gallery-radio:nth-of-type(6):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(6) {
-		opacity: 1;
-	}
-
-	.gallery-radio:nth-of-type(1):checked ~ .product-detail__thumbs .thumb:nth-of-type(1),
-	.gallery-radio:nth-of-type(2):checked ~ .product-detail__thumbs .thumb:nth-of-type(2),
-	.gallery-radio:nth-of-type(3):checked ~ .product-detail__thumbs .thumb:nth-of-type(3),
-	.gallery-radio:nth-of-type(4):checked ~ .product-detail__thumbs .thumb:nth-of-type(4),
-	.gallery-radio:nth-of-type(5):checked ~ .product-detail__thumbs .thumb:nth-of-type(5),
-	.gallery-radio:nth-of-type(6):checked ~ .product-detail__thumbs .thumb:nth-of-type(6) {
+	.thumb.is-active {
 		border-color: var(--color-primary);
 	}
 
