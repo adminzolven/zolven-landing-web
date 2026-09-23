@@ -1,10 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
-import ProductCard from './ProductCard.astro';
+import { Image } from 'astro:assets';
 
 const allProducts = await getCollection('productos');
-const featured = allProducts.filter((p) => p.data.destacado).slice(0, 6);
-const products = featured.length > 0 ? featured : allProducts.slice(0, 6);
+const featured = allProducts.filter((p) => p.data.destacado).slice(0, 5);
+const products = featured.length > 0 ? featured : allProducts.slice(0, 5);
 ---
 
 <section id="catalogo" class="catalog-preview">
@@ -16,16 +16,148 @@ const products = featured.length > 0 ? featured : allProducts.slice(0, 6);
 			</div>
 			<a href="/catalogo" class="catalog-preview__link">Ver catálogo completo →</a>
 		</div>
+	</div>
 
-		<div class="catalog-preview__grid">
-			{products.map((product) => <ProductCard product={product} />)}
-		</div>
+	<div class="reveal-track" data-reveal-track>
+		{
+			products.map((product) => (
+				<div class="reveal-item" data-reveal-item>
+					<div class="reveal-item__media">
+						<Image
+							class="reveal-item__image"
+							data-reveal-image
+							src={product.data.imagen}
+							alt={product.data.imagenAlt ?? product.data.nombre}
+							width={720}
+							height={540}
+						/>
+					</div>
+					<div class="reveal-item__info" data-reveal-info>
+						<p class="reveal-item__tag">{product.data.categoria}</p>
+						<h3>{product.data.nombre}</h3>
+						<p class="reveal-item__desc">{product.data.descripcion}</p>
+						<a href={`/catalogo/${product.id}`} class="reveal-item__cta">
+							Ver detalle →
+						</a>
+					</div>
+				</div>
+			))
+		}
 	</div>
 </section>
+
+<script>
+	import gsap from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	const items = gsap.utils.toArray<HTMLElement>('[data-reveal-item]');
+
+	if (items.length) {
+		ScrollTrigger.matchMedia({
+			'(min-width: 861px)': () => {
+				items.forEach((item, i) => {
+					const image = item.querySelector<HTMLElement>('[data-reveal-image]');
+					const info = item.querySelector<HTMLElement>('[data-reveal-info]');
+					if (!image || !info) return;
+
+					gsap.set(image, { scale: 0.8, opacity: 0 });
+					gsap.set(info, { opacity: 0, y: 24 });
+
+					const isLast = i === items.length - 1;
+
+					// Reveal (image + text together) occupies the first slice of the
+					// pin's scroll range; the rest is a held "reading" pause before
+					// the next product takes over. `end` is an explicit distance in
+					// viewport-heights beyond the trigger's own top — not inherited
+					// or left ambiguous — and pinSpacing stays at its default `true`
+					// so ScrollTrigger reserves the exact space itself, guaranteeing
+					// the container's total height always includes each pin in full
+					// (including the last one) with no manual height bookkeeping.
+					//
+					// The last item can't use a guessed "+=N%" distance: it has no
+					// next card to seamlessly hand off to, so any mismatch between
+					// that guess and the real layout below it (padding, lazy-loaded
+					// image sizes) shows up as dead space or overlap against
+					// "Hablemos". Anchoring its end directly to that section's own
+					// position removes the guess — the pin releases at exactly the
+					// moment Hablemos reaches the top of the viewport, whatever the
+					// actual content height above it turns out to be.
+					const tl = gsap.timeline({
+						scrollTrigger: {
+							trigger: item,
+							start: 'top top',
+							end: isLast ? 'top top' : '+=130%',
+							endTrigger: isLast ? '#hablemos' : undefined,
+							pin: true,
+							pinSpacing: true,
+							scrub: 0.6,
+							invalidateOnRefresh: true,
+							onLeave: isLast ? () => gsap.set(item, { clearProps: 'position,top,left,width' }) : undefined,
+						},
+					});
+
+					tl.to([image, info], { opacity: 1, ease: 'none', duration: 1 }, 0)
+						.to(image, { scale: 1, ease: 'none', duration: 1 }, 0)
+						.to(info, { y: 0, ease: 'none', duration: 1 }, 0)
+						.to({}, { duration: isLast ? 0.8 : 0.3 });
+				});
+
+				// Images load asynchronously; once everything has settled, re-measure
+				// so pin start/end points aren't computed against stale layout.
+				window.addEventListener('load', () => ScrollTrigger.refresh());
+
+				return () => {
+					items.forEach((item) => {
+						const image = item.querySelector<HTMLElement>('[data-reveal-image]');
+						const info = item.querySelector<HTMLElement>('[data-reveal-info]');
+						gsap.set([image, info], { clearProps: 'all' });
+					});
+				};
+			},
+			'(max-width: 860px)': () => {
+				items.forEach((item) => {
+					const image = item.querySelector<HTMLElement>('[data-reveal-image]');
+					const info = item.querySelector<HTMLElement>('[data-reveal-info]');
+					if (!image || !info) return;
+
+					gsap.set(image, { scale: 0.88, opacity: 0 });
+					gsap.set(info, { opacity: 0, y: 16 });
+
+					gsap.to(image, {
+						scale: 1,
+						opacity: 1,
+						duration: 0.6,
+						ease: 'power2.out',
+						scrollTrigger: { trigger: item, start: 'top 82%' },
+					});
+					gsap.to(info, {
+						opacity: 1,
+						y: 0,
+						duration: 0.6,
+						delay: 0.12,
+						ease: 'power2.out',
+						scrollTrigger: { trigger: item, start: 'top 82%' },
+					});
+				});
+
+				return () => {
+					items.forEach((item) => {
+						const image = item.querySelector<HTMLElement>('[data-reveal-image]');
+						const info = item.querySelector<HTMLElement>('[data-reveal-info]');
+						gsap.set([image, info], { clearProps: 'all' });
+					});
+				};
+			},
+		});
+	}
+</script>
 
 <style>
 	.catalog-preview {
 		background: var(--color-bg-muted);
+		padding: 32px 0;
 	}
 
 	.catalog-preview__header {
@@ -51,21 +183,92 @@ const products = featured.length > 0 ? featured : allProducts.slice(0, 6);
 		white-space: nowrap;
 	}
 
-	.catalog-preview__grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 24px;
+	.reveal-track {
+		position: relative;
+	}
+
+	.reveal-item {
+		position: relative;
+		height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 56px;
+		width: 100%;
+		max-width: var(--container-width);
+		margin: 0 auto;
+		padding: 0 24px;
+	}
+
+	.reveal-item__media {
+		flex: 1;
+		max-width: 560px;
+		aspect-ratio: 4 / 3;
+		border-radius: var(--radius-md);
+		overflow: hidden;
+		background: var(--color-hero-bg);
+	}
+
+	.reveal-item__media :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		will-change: transform, opacity;
+	}
+
+	.reveal-item__info {
+		flex: 1;
+		max-width: 420px;
+		will-change: transform, opacity;
+	}
+
+	.reveal-item__tag {
+		font-family: var(--font-heading);
+		font-weight: 700;
+		font-size: 0.8rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--color-primary);
+		margin-bottom: 12px;
+	}
+
+	.reveal-item__info h3 {
+		font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+		margin-bottom: 14px;
+	}
+
+	.reveal-item__desc {
+		color: var(--color-graphite-soft);
+		line-height: 1.6;
+		margin-bottom: 20px;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.reveal-item__cta {
+		font-family: var(--font-heading);
+		font-weight: 700;
+		color: var(--color-secondary-2);
+		text-decoration: none;
 	}
 
 	@media (max-width: 860px) {
-		.catalog-preview__grid {
-			grid-template-columns: 1fr 1fr;
+		.reveal-item {
+			height: auto;
+			flex-direction: column;
+			gap: 20px;
+			padding: 32px 24px;
+			max-width: 100%;
 		}
-	}
 
-	@media (max-width: 560px) {
-		.catalog-preview__grid {
-			grid-template-columns: 1fr;
+		.reveal-item__media {
+			max-width: 100%;
+		}
+
+		.reveal-item__info {
+			max-width: 100%;
 		}
 	}
 </style>

@@ -7,20 +7,30 @@ const productos = defineCollection({
 		z.object({
 			nombre: z.string(),
 			categoria: z.enum([
-				'Núcleos Laminados',
-				'Acero Eléctrico',
-				'Núcleos tipo C',
-				'Núcleos Amorfos',
-				'Núcleos tipo E',
-				'Uni-core',
+				'Acero al Silicio',
+				'Núcleos Enrollados',
+				'Uni-Core',
+				'Laminaciones y Apilados',
 				'Núcleos Toroidales',
 			]),
 			descripcion: z.string(),
 			imagen: image(),
 			imagenAlt: z.string().optional(),
+			// Fotos adicionales opcionales para la galería de miniaturas del detalle
+			galeria: z.array(image()).optional(),
 			destacado: z.boolean().default(false),
-			// Ficha técnica: pares libres clave/valor (p. ej. "Material del núcleo": "Acero al silicio 3%")
+			// Ficha técnica completa: pares libres clave/valor, usada para SEO/datos estructurados
 			specs: z.record(z.string(), z.string()).default({}),
+			// Subconjunto curado para la página de detalle (abrebocas, no ficha técnica)
+			datosClave: z
+				.array(z.object({ label: z.string(), valor: z.string() }))
+				.min(3)
+				.max(4),
+			ventajas: z
+				.array(z.object({ icono: z.string(), texto: z.string() }))
+				.min(1)
+				.max(3),
+			aplicaciones: z.array(z.string()).min(1).max(5),
 		}),
 });
 

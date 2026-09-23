@@ -1,0 +1,405 @@
+---
+import Icon from './Icon.astro';
+
+const pasos = [
+	{
+		numero: '01',
+		icono: 'validacion-auditoria',
+		titulo: 'Identificación y Validación de Proveedores',
+		texto: 'Seleccionamos y auditamos fabricantes especializados a nivel global. Filtramos el mercado para asegurar que solo accedas a proveedores que cumplen altos estándares de calidad y capacidad técnica.',
+	},
+	{
+		numero: '02',
+		icono: 'negociacion',
+		titulo: 'Negociación Estratégica',
+		texto: 'Gestionamos las cotizaciones y condiciones comerciales. Eliminamos las barreras culturales y de idioma para asegurar precios competitivos y términos favorables para tu negocio.',
+	},
+	{
+		numero: '03',
+		icono: 'importacion',
+		titulo: 'Logística e Importación',
+		texto: 'Centralizamos la operación logística de extremo a extremo. Coordinamos transporte, aduanas y documentación para mitigar riesgos y asegurar que los materiales lleguen a tiempo a tus instalaciones.',
+	},
+	{
+		numero: '04',
+		icono: 'garantia',
+		titulo: 'Respaldo, Acompañamiento y Garantía',
+		texto: 'Vamos más allá de la entrega, te ofrecemos acompañamiento postventa. Actuamos como tu soporte local frente al fabricante, gestionando garantías y resolviendo cualquier incidencia técnica de forma ágil y directa.',
+	},
+];
+
+const total = pasos.length;
+---
+
+<section id="servicio-integral" class="servicio">
+	<div class="container">
+		<div class="servicio__intro" data-servicio-intro>
+			<p class="eyebrow">Cómo trabajamos</p>
+			<h2>Nuestro servicio integral</h2>
+		</div>
+
+		<div class="servicio__fan" data-fan>
+			<div class="servicio__carousel">
+				<button type="button" class="fan__arrow fan__arrow--prev" data-prev aria-label="Paso anterior">
+					<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+						<path
+							d="M15 6l-6 6 6 6"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+					</svg>
+				</button>
+
+				<div class="servicio__stage">
+					{
+						pasos.map((paso, i) => (
+							<article class={`fan__card ${i === 0 ? 'is-active' : ''}`} data-index={i} tabindex="0">
+								<div class="fan__card-inner">
+									<p class="fan__indicador">
+										{paso.numero}/{String(total).padStart(2, '0')}
+									</p>
+									<Icon name={paso.icono} variant="turquoise" size={56} />
+									<h3>{paso.titulo}</h3>
+									<p class="fan__texto">{paso.texto}</p>
+								</div>
+							</article>
+						))
+					}
+				</div>
+
+				<button type="button" class="fan__arrow fan__arrow--next" data-next aria-label="Paso siguiente">
+					<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+						<path
+							d="M9 6l6 6-6 6"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+					</svg>
+				</button>
+			</div>
+
+			<div class="fan__dots" role="tablist" aria-label="Pasos del servicio">
+				{
+					pasos.map((paso, i) => (
+						<button
+							type="button"
+							class={`fan__dot ${i === 0 ? 'is-active' : ''}`}
+							data-dot
+							data-index={i}
+							role="tab"
+							aria-selected={i === 0}
+							aria-label={`Ver paso ${paso.numero}: ${paso.titulo}`}
+						/>
+					))
+				}
+			</div>
+		</div>
+	</div>
+</section>
+
+<script>
+	import gsap from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	const fan = document.querySelector<HTMLElement>('[data-fan]');
+	const intro = document.querySelector<HTMLElement>('[data-servicio-intro]');
+	const section = document.getElementById('servicio-integral');
+
+	if (fan) {
+		const cards = Array.from(fan.querySelectorAll<HTMLElement>('.fan__card'));
+		const dots = Array.from(fan.querySelectorAll<HTMLElement>('.fan__dot'));
+		const prevButton = fan.querySelector<HTMLElement>('[data-prev]');
+		const nextButton = fan.querySelector<HTMLElement>('[data-next]');
+		const total = cards.length;
+		let current = 0;
+
+		function setActive(newIndex: number) {
+			current = newIndex;
+			cards.forEach((card, i) => {
+				const offset = (i - newIndex + total) % total;
+				card.classList.remove('is-active', 'is-offset-1', 'is-offset-2', 'is-offset-3');
+				if (offset === 0) {
+					card.classList.add('is-active');
+					card.setAttribute('aria-hidden', 'false');
+				} else {
+					card.classList.add(`is-offset-${offset}`);
+					card.setAttribute('aria-hidden', 'true');
+				}
+			});
+			dots.forEach((dot, i) => {
+				dot.classList.toggle('is-active', i === newIndex);
+				dot.setAttribute('aria-selected', String(i === newIndex));
+			});
+		}
+
+		cards.forEach((card, i) => {
+			card.addEventListener('click', () => setActive(i));
+			card.addEventListener('keydown', (event) => {
+				if (event instanceof KeyboardEvent && (event.key === 'Enter' || event.key === ' ')) {
+					event.preventDefault();
+					setActive(i);
+				}
+			});
+		});
+
+		dots.forEach((dot, i) => {
+			dot.addEventListener('click', () => setActive(i));
+		});
+
+		prevButton?.addEventListener('click', () => setActive((current - 1 + total) % total));
+		nextButton?.addEventListener('click', () => setActive((current + 1) % total));
+
+		setActive(0);
+
+		// The title and the fan of cards are revealed together, driven 1:1 by
+		// scroll position, only in the stretch of scroll right before this
+		// section arrives (start: section top at 85% of viewport height —
+		// not yet visible but close — to end: section top at 30%, nearly in
+		// its final place). Outside that range nothing floats or pins; the
+		// elements simply sit at their from/to state, so scrubbing back above
+		// the range restores the pre-reveal look automatically.
+		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		if (section && intro && !reduceMotion) {
+			gsap.set(fan, { transformOrigin: '50% 50%' });
+			fan.style.pointerEvents = 'none';
+
+			const tl = gsap.timeline({
+				scrollTrigger: {
+					trigger: section,
+					start: 'top 85%',
+					end: 'top 30%',
+					scrub: true,
+					onUpdate: (self) => {
+						fan.style.pointerEvents = self.progress >= 1 ? '' : 'none';
+					},
+				},
+			});
+
+			tl.fromTo(intro, { opacity: 0.15, filter: 'grayscale(1)' }, { opacity: 1, filter: 'grayscale(0)', ease: 'none' }, 0);
+			tl.fromTo(fan, { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, ease: 'none' }, 0);
+		}
+	}
+</script>
+
+<style>
+	.servicio {
+		padding-top: 32px;
+		scroll-margin-top: 96px;
+	}
+
+	@media (max-width: 1023px) {
+		.servicio {
+			scroll-margin-top: 80px;
+		}
+	}
+
+	.servicio h2 {
+		font-size: clamp(1.6rem, 3vw, 2.2rem);
+		margin: 12px 0 48px;
+		max-width: 24ch;
+	}
+
+	.servicio .eyebrow {
+		color: var(--color-secondary-2);
+	}
+
+	.servicio__intro {
+		will-change: opacity, filter;
+	}
+
+	.servicio__fan {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 28px;
+		width: 100%;
+		will-change: opacity, transform;
+	}
+
+	.servicio__carousel {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 20px;
+		width: 100%;
+	}
+
+	.servicio__stage {
+		position: relative;
+		width: 100%;
+		max-width: 640px;
+		min-width: 0;
+		flex: 1;
+	}
+
+	.fan__arrow {
+		flex-shrink: 0;
+		width: 44px;
+		height: 44px;
+		padding: 0;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, opacity 0.5s ease;
+	}
+
+	.fan__arrow svg {
+		width: 20px;
+		height: 20px;
+	}
+
+	.fan__arrow--prev {
+		background: var(--color-white);
+		border: 1px solid var(--color-border);
+		color: var(--color-graphite-soft);
+	}
+
+	.fan__arrow--prev:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 14px -8px rgba(10, 20, 30, 0.3);
+	}
+
+	.fan__arrow--next {
+		background: var(--color-secondary-2);
+		border: none;
+		color: var(--color-white);
+	}
+
+	.fan__arrow--next:hover {
+		background: #086a8a;
+		transform: translateY(-1px);
+	}
+
+	@media (max-width: 560px) {
+		.servicio__carousel {
+			gap: 10px;
+		}
+
+		.fan__arrow {
+			width: 36px;
+			height: 36px;
+		}
+
+		.fan__arrow svg {
+			width: 16px;
+			height: 16px;
+		}
+	}
+
+	.fan__card {
+		border-radius: var(--radius-md);
+		padding: 32px 36px;
+		background: #d7dade;
+		border: 1px solid var(--color-border);
+		cursor: pointer;
+		transition:
+			transform 0.45s cubic-bezier(0.22, 0.68, 0, 1.2),
+			background 0.3s ease,
+			box-shadow 0.3s ease,
+			opacity 0.3s ease;
+	}
+
+	.fan__card:not(.is-active) {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+	}
+
+	.fan__card-inner {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.fan__card:not(.is-active) .fan__card-inner {
+		visibility: hidden;
+	}
+
+	.fan__card.is-active {
+		position: relative;
+		z-index: 40;
+		background: var(--color-white);
+		box-shadow: 0 24px 48px -22px rgba(10, 20, 30, 0.3);
+		cursor: default;
+	}
+
+	.fan__card.is-offset-1 {
+		z-index: 30;
+		background: #d7dade;
+		transform: translateX(22px) rotate(4deg) scale(0.94);
+	}
+
+	.fan__card.is-offset-2 {
+		z-index: 20;
+		background: #c4c8cc;
+		transform: translateX(-22px) rotate(-4deg) scale(0.9);
+	}
+
+	.fan__card.is-offset-3 {
+		z-index: 10;
+		background: #b1b6bb;
+		transform: translateX(30px) rotate(9deg) scale(0.86);
+	}
+
+	.fan__indicador {
+		position: absolute;
+		top: 24px;
+		right: 28px;
+		font-family: var(--font-heading);
+		font-weight: 700;
+		font-size: 0.85rem;
+		color: var(--color-graphite-soft);
+	}
+
+	.fan__card h3 {
+		font-size: 1.2rem;
+		max-width: 40ch;
+	}
+
+	.fan__texto {
+		font-size: 0.95rem;
+		line-height: 1.7;
+		color: var(--color-graphite-soft);
+	}
+
+	.fan__dots {
+		display: flex;
+		gap: 10px;
+		transition: opacity 0.5s ease;
+	}
+
+	.fan__dot {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		border: none;
+		padding: 0;
+		background: var(--color-border);
+		cursor: pointer;
+		transition: background 0.25s ease, transform 0.25s ease;
+	}
+
+	.fan__dot.is-active {
+		background: var(--color-secondary-2);
+		transform: scale(1.2);
+	}
+
+	@media (max-width: 640px) {
+		.fan__card {
+			padding: 24px 22px;
+		}
+
+		.fan__card h3 {
+			font-size: 1.05rem;
+		}
+	}
+</style>

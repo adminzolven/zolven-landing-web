@@ -1,12 +1,14 @@
 :root {
 	/* Brand colors */
 	--color-primary: #f28123;
-	--color-graphite: #2b2f33;
+	--color-primary-soft: #fef8e4;
+	--color-graphite: #282f33;
 	--color-white: #ffffff;
 
-	/* Secondary palette — TBD, wire up here once defined */
-	--color-secondary-1: initial;
-	--color-secondary-2: initial;
+	/* Secondary palette — turquesa, protagonista secundario para datos/puntos destacados */
+	--color-secondary-1: #e5f8fc;
+	--color-secondary-2: #0a7ea4;
+	--color-secondary-3: #7fe0f2;
 
 	/* Derived surface colors */
 	--color-hero-bg: #2a2d30;
@@ -56,6 +58,8 @@ h3 {
 
 p {
 	margin: 0;
+	text-align: justify;
+	text-align-last: left;
 }
 
 a {

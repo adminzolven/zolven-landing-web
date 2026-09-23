@@ -1,0 +1,60 @@
+---
+const rawIcons = import.meta.glob('../assets/icons/*.svg', {
+	query: '?raw',
+	import: 'default',
+	eager: true,
+}) as Record<string, string>;
+
+const icons: Record<string, string> = {};
+for (const [path, content] of Object.entries(rawIcons)) {
+	const name = path.split('/').pop()!.replace('.svg', '');
+	icons[name] = content;
+}
+
+const VARIANTS = {
+	primary: { disc: 'var(--color-primary)', stroke: 'var(--color-graphite)' },
+	soft: { disc: 'var(--color-primary-soft)', stroke: 'var(--color-graphite)' },
+	info: { disc: 'var(--color-secondary-1)', stroke: 'var(--color-secondary-2)' },
+	dark: { disc: 'var(--color-graphite)', stroke: 'var(--color-secondary-3)' },
+	turquoise: { disc: 'var(--color-secondary-2)', stroke: 'var(--color-white)' },
+} as const;
+
+interface Props {
+	name: string;
+	variant?: keyof typeof VARIANTS;
+	size?: number;
+	class?: string;
+}
+
+const { name, variant = 'primary', size = 44, class: className } = Astro.props;
+const colors = VARIANTS[variant];
+const svg = icons[name];
+
+if (!svg && import.meta.env.DEV) {
+	console.warn(`[Icon] No existe un ícono llamado "${name}" en src/assets/icons/`);
+}
+---
+
+<span
+	class={`icon-disc ${className ?? ''}`}
+	style={`--icon-disc-bg:${colors.disc};--icon-stroke:${colors.stroke};width:${size}px;height:${size}px;`}
+>
+	<Fragment set:html={svg} />
+</span>
+
+<style>
+	.icon-disc {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		border-radius: 50%;
+		background: var(--icon-disc-bg);
+	}
+
+	.icon-disc :global(svg) {
+		width: 52%;
+		height: 52%;
+		color: var(--icon-stroke);
+	}
+</style>

@@ -1,54 +1,75 @@
 ---
-const pillars = [
-	{
-		title: 'Fabricantes certificados',
-		text: 'Trabajamos solo con plantas certificadas bajo normas internacionales (IEC), verificadas antes de entrar a nuestro catálogo.',
-	},
-	{
-		title: 'Sin intermediarios',
-		text: 'Negociamos directo con fábrica, lo que se traduce en mejores tiempos de entrega y precios reales de origen.',
-	},
-	{
-		title: 'Ficha técnica clara',
-		text: 'Cada material y componente llega con sus especificaciones completas, listas para tu proceso de ingeniería.',
-	},
-];
+import Icon from './Icon.astro';
+
+const connectorPath = 'M16,20 C34,2 66,38 84,20';
 ---
 
 <section id="nosotros" class="nosotros">
 	<div class="container nosotros__inner">
-		<div class="nosotros__intro">
+		<div class="nosotros__copy">
 			<p class="eyebrow">Nosotros</p>
 			<h2>El puente entre tu empresa y la fábrica</h2>
 			<p class="nosotros__text">
 				Zolven conecta a empresas del sector eléctrico con fabricantes
-				globales certificados de materiales y componentes — núcleos
-				laminados, acero eléctrico, núcleos tipo C, amorfos, tipo E, uni-core
-				y toroidales — eliminando intermediarios y simplificando el
+				globales certificados de acero al silicio, núcleos y componentes
+				magnéticos — eliminando intermediarios y simplificando el
 				abastecimiento de principio a fin.
 			</p>
 		</div>
 
-		<div class="nosotros__grid">
-			{
-				pillars.map((pillar) => (
-					<article class="nosotros__card">
-						<h3>{pillar.title}</h3>
-						<p>{pillar.text}</p>
-					</article>
-				))
-			}
+		<div class="nosotros__connection" aria-hidden="true">
+			<svg class="nosotros__path" viewBox="0 0 100 40" preserveAspectRatio="xMidYMid meet">
+				<path
+					d={connectorPath}
+					fill="none"
+					stroke="var(--color-border)"
+					stroke-width="1"
+					stroke-linecap="round"
+					stroke-dasharray="0.5 5"
+				/>
+				<circle r="1.5" fill="var(--color-primary)">
+					<animateMotion dur="3s" repeatCount="indefinite" path={connectorPath} />
+				</circle>
+				<circle r="1.5" fill="var(--color-primary)" opacity="0.6">
+					<animateMotion dur="3s" repeatCount="indefinite" begin="1s" path={connectorPath} />
+				</circle>
+				<circle r="1.5" fill="var(--color-primary)" opacity="0.3">
+					<animateMotion dur="3s" repeatCount="indefinite" begin="2s" path={connectorPath} />
+				</circle>
+			</svg>
+
+			<div class="nosotros__node nosotros__node--start">
+				<Icon name="fabricantes" variant="primary" size={84} />
+				<span>Fábrica</span>
+			</div>
+			<div class="nosotros__node nosotros__node--end">
+				<Icon name="empresa" variant="info" size={84} />
+				<span>Tu empresa</span>
+			</div>
 		</div>
 	</div>
 </section>
 
 <style>
-	.nosotros__inner {
-		display: grid;
-		gap: 48px;
+	.nosotros {
+		padding-bottom: 32px;
+		scroll-margin-top: 96px;
 	}
 
-	.nosotros__intro h2 {
+	@media (max-width: 1023px) {
+		.nosotros {
+			scroll-margin-top: 80px;
+		}
+	}
+
+	.nosotros__inner {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		align-items: center;
+		gap: 56px;
+	}
+
+	.nosotros__copy h2 {
 		font-size: clamp(1.6rem, 3vw, 2.2rem);
 		margin: 12px 0 16px;
 		max-width: 20ch;
@@ -57,36 +78,61 @@ const pillars = [
 	.nosotros__text {
 		font-size: 1.05rem;
 		line-height: 1.65;
+	}
+
+	.nosotros__connection {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 2.5 / 1;
+	}
+
+	.nosotros__path {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.nosotros__node {
+		position: absolute;
+		top: 50%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		transform: translate(-50%, -50%);
+	}
+
+	.nosotros__node--start {
+		left: 16%;
+	}
+
+	.nosotros__node--end {
+		left: 84%;
+	}
+
+	.nosotros__node span {
+		font-family: var(--font-heading);
+		font-weight: 700;
+		font-size: 0.8rem;
 		color: var(--color-graphite-soft);
-		max-width: 62ch;
-	}
-
-	.nosotros__grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 24px;
-	}
-
-	.nosotros__card {
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-md);
-		padding: 28px;
-	}
-
-	.nosotros__card h3 {
-		font-size: 1.1rem;
-		margin-bottom: 10px;
-	}
-
-	.nosotros__card p {
-		font-size: 0.95rem;
-		line-height: 1.6;
-		color: var(--color-graphite-soft);
+		white-space: nowrap;
 	}
 
 	@media (max-width: 860px) {
-		.nosotros__grid {
+		.nosotros__inner {
 			grid-template-columns: 1fr;
+		}
+
+		.nosotros__connection {
+			max-width: 420px;
+			margin: 0 auto;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.nosotros__path :global(circle) {
+			display: none;
 		}
 	}
 </style>

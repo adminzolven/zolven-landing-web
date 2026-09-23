@@ -2,16 +2,15 @@
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import ProductCard from '../../components/ProductCard.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 
 const allProducts = await getCollection('productos');
 
 const categories = [
-	'Núcleos Laminados',
-	'Acero Eléctrico',
-	'Núcleos tipo C',
-	'Núcleos Amorfos',
-	'Núcleos tipo E',
-	'Uni-core',
+	'Acero al Silicio',
+	'Núcleos Enrollados',
+	'Uni-Core',
+	'Laminaciones y Apilados',
 	'Núcleos Toroidales',
 ] as const;
 ---
@@ -22,6 +21,8 @@ const categories = [
 >
 	<section class="catalog-page">
 		<div class="container">
+			<Breadcrumbs items={[{ label: 'Inicio', href: '/' }, { label: 'Catálogo' }]} />
+
 			<header class="catalog-page__header">
 				<p class="eyebrow">Catálogo</p>
 				<h1>Materiales y componentes disponibles</h1>

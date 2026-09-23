@@ -2,17 +2,16 @@
 import Logo from './Logo.astro';
 
 const navLinks = [
+	{ label: 'Cómo trabajamos', href: '/#servicio-integral' },
 	{ label: 'Catálogo', href: '/catalogo' },
-	{ label: 'Nosotros', href: '/#nosotros' },
-	{ label: 'Contacto', href: '/#hablemos' },
 ];
 ---
 
-<header class="site-header">
+<header class="site-header" data-header>
 	<div class="container site-header__inner">
 		<Logo size={34} variant="light" class="site-header__logo" />
 
-		<nav class="site-header__nav" aria-label="Navegación principal">
+		<nav class="site-header__nav" data-nav id="site-nav" aria-label="Navegación principal">
 			<ul>
 				{
 					navLinks.map((link) => (
@@ -21,27 +20,103 @@ const navLinks = [
 						</li>
 					))
 				}
+				<li class="site-header__nav-cta-item">
+					<a href="/#hablemos" class="btn btn-primary site-header__nav-cta">Contáctanos</a>
+				</li>
 			</ul>
 		</nav>
 
 		<a href="/#hablemos" class="btn btn-primary site-header__cta">Contáctanos</a>
+
+		<button
+			type="button"
+			class="site-header__toggle"
+			data-nav-toggle
+			aria-expanded="false"
+			aria-controls="site-nav"
+			aria-label="Abrir menú de navegación"
+		>
+			<span></span>
+			<span></span>
+			<span></span>
+		</button>
 	</div>
 </header>
+
+<script>
+	const header = document.querySelector<HTMLElement>('[data-header]');
+	let ticking = false;
+
+	function updateHeader() {
+		header?.classList.toggle('is-scrolled', window.scrollY > 100);
+		ticking = false;
+	}
+
+	function onScroll() {
+		if (!ticking) {
+			requestAnimationFrame(updateHeader);
+			ticking = true;
+		}
+	}
+
+	updateHeader();
+	window.addEventListener('scroll', onScroll, { passive: true });
+
+	const nav = document.querySelector<HTMLElement>('[data-nav]');
+	const toggle = document.querySelector<HTMLElement>('[data-nav-toggle]');
+
+	if (nav && toggle) {
+		const closeMenu = () => {
+			nav.classList.remove('is-open');
+			toggle.setAttribute('aria-expanded', 'false');
+		};
+
+		toggle.addEventListener('click', () => {
+			const isOpen = nav.classList.toggle('is-open');
+			toggle.setAttribute('aria-expanded', String(isOpen));
+		});
+
+		nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+
+		window.addEventListener('resize', () => {
+			if (window.innerWidth > 1023) closeMenu();
+		});
+	}
+</script>
 
 <style>
 	.site-header {
 		background: var(--color-hero-bg);
-		position: relative;
-		z-index: 10;
+		position: sticky;
+		top: 0;
+		z-index: 100;
+		box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+		transition: box-shadow 0.3s ease, background-color 0.3s ease;
+	}
+
+	.site-header.is-scrolled {
+		background-color: var(--color-graphite);
+		box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.45);
 	}
 
 	.site-header__inner {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 24px;
 		padding-top: 20px;
 		padding-bottom: 20px;
+	}
+
+	.site-header :global(.site-header__logo) {
+		transform-origin: left center;
+		transition: transform 0.3s ease;
+		flex-shrink: 0;
+	}
+
+	.site-header.is-scrolled :global(.site-header__logo) {
+		transform: scale(0.85);
 	}
 
 	.site-header__nav ul {
@@ -66,14 +141,120 @@ const navLinks = [
 		opacity: 1;
 	}
 
+	.site-header__nav-cta-item {
+		display: none;
+	}
+
 	.site-header__cta {
 		flex-shrink: 0;
 		padding: 10px 22px;
 	}
 
-	@media (max-width: 720px) {
-		.site-header__nav {
+	.site-header__toggle {
+		display: none;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: 5px;
+		width: 36px;
+		height: 36px;
+		padding: 0;
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+
+	.site-header__toggle span {
+		display: block;
+		width: 20px;
+		height: 2px;
+		background: var(--color-white);
+		transition: transform 0.25s ease, opacity 0.25s ease;
+	}
+
+	.site-header__toggle[aria-expanded='true'] span:nth-child(1) {
+		transform: translateY(7px) rotate(45deg);
+	}
+
+	.site-header__toggle[aria-expanded='true'] span:nth-child(2) {
+		opacity: 0;
+	}
+
+	.site-header__toggle[aria-expanded='true'] span:nth-child(3) {
+		transform: translateY(-7px) rotate(-45deg);
+	}
+
+	/* Mobile/tablet only (<1024px) — desktop keeps logo + inline nav + CTA untouched. */
+	@media (max-width: 1023px) {
+		.site-header__inner {
+			padding-top: 16px;
+			padding-bottom: 16px;
+		}
+
+		.site-header :global(.site-header__logo) {
+			transform: scale(0.72);
+		}
+
+		.site-header.is-scrolled :global(.site-header__logo) {
+			transform: scale(0.6);
+		}
+
+		.site-header__cta {
 			display: none;
+		}
+
+		.site-header__nav {
+			position: absolute;
+			top: 100%;
+			right: 0;
+			width: min(90vw, 300px);
+			background: var(--color-graphite);
+			max-height: 0;
+			overflow: hidden;
+			transition: max-height 0.3s ease;
+			box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.45);
+		}
+
+		.site-header__nav.is-open {
+			max-height: 400px;
+		}
+
+		.site-header__nav ul {
+			flex-direction: column;
+			gap: 0;
+			padding: 8px 24px 20px;
+		}
+
+		.site-header__nav li:not(.site-header__nav-cta-item) {
+			border-top: 1px solid rgba(255, 255, 255, 0.1);
+		}
+
+		.site-header__nav a {
+			display: block;
+			padding: 14px 0;
+		}
+
+		.site-header__nav-cta-item {
+			display: block;
+			margin-top: 12px;
+		}
+
+		/* `.site-header__nav a { padding: 14px 0; display: block; }` above
+		   outranks a plain `.site-header__nav-cta` class selector (an extra
+		   tag in the selector beats an extra class), silently collapsing
+		   this button's own padding back to 14px 0 and its display back to
+		   block. Repeating the `a` tag here matches that specificity so
+		   this rule actually wins. */
+		.site-header__nav a.site-header__nav-cta {
+			display: flex;
+			width: 100%;
+			justify-content: center;
+			padding: 12px 22px;
+		}
+
+		.site-header__toggle {
+			display: flex;
 		}
 	}
 </style>

@@ -1,7 +1,9 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
+import Icon from '../../components/Icon.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 
 export async function getStaticPaths() {
 	const products = await getCollection('productos');
@@ -12,8 +14,11 @@ export async function getStaticPaths() {
 }
 
 const { product } = Astro.props;
-const { nombre, categoria, descripcion, imagen, imagenAlt, specs } = product.data;
-const { Content } = await render(product);
+const { nombre, categoria, descripcion, imagen, imagenAlt, galeria, specs, datosClave, ventajas } =
+	product.data;
+
+const images = [imagen, ...(galeria ?? [])];
+const galleryName = `gallery-${product.id}`;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const imageURL = new URL(imagen.src, Astro.site);
@@ -48,122 +53,425 @@ const productSchema = {
 	</Fragment>
 
 	<section class="product-detail">
-		<div class="container product-detail__inner">
-			<div class="product-detail__image">
-				<Image src={imagen} alt={imagenAlt ?? nombre} width={640} height={480} />
-			</div>
+		<div class="container">
+			<Breadcrumbs
+					items={[{ label: 'Inicio', href: '/' }, { label: 'Catálogo', href: '/catalogo' }, { label: nombre }]}
+				/>
+		</div>
 
-			<div class="product-detail__body">
-				<a href="/catalogo" class="product-detail__back">← Volver al catálogo</a>
+		<div class="container product-detail__layout">
+			<aside class="product-detail__media">
+				<div class="product-detail__gallery">
+					{
+						images.length > 1 &&
+							images.map((_, i) => (
+								<input
+									type="radio"
+									name={galleryName}
+									id={`${galleryName}-${i}`}
+									class="gallery-radio"
+									checked={i === 0}
+								/>
+							))
+					}
+
+					<div
+						class="product-detail__mainstage"
+						tabindex={images.length > 1 ? 0 : -1}
+						role={images.length > 1 ? 'group' : undefined}
+						aria-label={images.length > 1 ? 'Galería de imágenes del producto' : undefined}
+					>
+						{
+							images.map((img, i) => (
+								<div class={`mainstage__slide ${i === 0 ? 'is-active' : ''}`}>
+									<Image src={img} alt={imagenAlt ?? nombre} width={640} height={480} />
+								</div>
+							))
+						}
+
+						{
+							images.length > 1 && (
+								<>
+									<button type="button" class="mainstage__arrow mainstage__arrow--prev" aria-label="Imagen anterior">
+										<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+											<path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+										</svg>
+									</button>
+									<button type="button" class="mainstage__arrow mainstage__arrow--next" aria-label="Siguiente imagen">
+										<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+											<path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+										</svg>
+									</button>
+								</>
+							)
+						}
+					</div>
+
+					{
+						images.length > 1 && (
+							<div class="product-detail__thumbs">
+								{images.map((img, i) => (
+									<label for={`${galleryName}-${i}`} class="thumb">
+										<Image src={img} alt="" width={120} height={120} />
+									</label>
+								))}
+							</div>
+						)
+					}
+
+					<div class="media-cta">
+						<p>¿Necesitas este material?</p>
+						<a href="/#hablemos" class="btn btn-primary">Contáctanos</a>
+					</div>
+				</div>
+			</aside>
+
+			<div class="product-detail__info">
 				<p class="eyebrow">{categoria}</p>
 				<h1>{nombre}</h1>
 				<p class="product-detail__desc">{descripcion}</p>
 
-				{
-					Object.keys(specs).length > 0 && (
-						<dl class="product-detail__specs">
-							{Object.entries(specs).map(([key, value]) => (
-								<div class="product-detail__spec">
-									<dt>{key}</dt>
-									<dd>{value}</dd>
+				<section class="detail-block">
+					<h2 class="detail-heading">Especificaciones</h2>
+					<dl class="specs-list">
+						{
+							datosClave.map((dato) => (
+								<div class="specs-list__row">
+									<dt>{dato.label}</dt>
+									<dd>{dato.valor}</dd>
 								</div>
-							))}
-						</dl>
-					)
-				}
+							))
+						}
+					</dl>
+				</section>
 
-				<a href="/#hablemos" class="btn btn-primary">Solicitar cotización</a>
-			</div>
-		</div>
-
-		<div class="container">
-			<div class="product-detail__content">
-				<Content />
+				<section class="detail-block">
+					<h2 class="detail-heading">Ventajas</h2>
+					<div class="ventajas-list">
+						{
+							ventajas.map((ventaja) => (
+								<div class="ventaja">
+									<Icon name={ventaja.icono} variant="info" size={44} />
+									<p>{ventaja.texto}</p>
+								</div>
+							))
+						}
+					</div>
+				</section>
 			</div>
 		</div>
 	</section>
 </Layout>
 
+<script>
+	document.querySelectorAll<HTMLElement>('.product-detail__gallery').forEach((gallery) => {
+		const radios = Array.from(gallery.querySelectorAll<HTMLInputElement>('.gallery-radio'));
+		const mainstage = gallery.querySelector<HTMLElement>('.product-detail__mainstage');
+		if (radios.length === 0 || !mainstage) return;
+
+		const prevBtn = gallery.querySelector<HTMLButtonElement>('.mainstage__arrow--prev');
+		const nextBtn = gallery.querySelector<HTMLButtonElement>('.mainstage__arrow--next');
+
+		const currentIndex = () => {
+			const idx = radios.findIndex((radio) => radio.checked);
+			return idx === -1 ? 0 : idx;
+		};
+
+		const goTo = (index: number) => {
+			const next = ((index % radios.length) + radios.length) % radios.length;
+			radios[next].checked = true;
+		};
+
+		prevBtn?.addEventListener('click', () => goTo(currentIndex() - 1));
+		nextBtn?.addEventListener('click', () => goTo(currentIndex() + 1));
+
+		mainstage.addEventListener('keydown', (event) => {
+			if (event.key === 'ArrowLeft') {
+				event.preventDefault();
+				goTo(currentIndex() - 1);
+			} else if (event.key === 'ArrowRight') {
+				event.preventDefault();
+				goTo(currentIndex() + 1);
+			}
+		});
+
+		let touchStartX: number | null = null;
+		mainstage.addEventListener(
+			'touchstart',
+			(event) => {
+				touchStartX = event.touches[0].clientX;
+			},
+			{ passive: true }
+		);
+		mainstage.addEventListener(
+			'touchend',
+			(event) => {
+				if (touchStartX === null) return;
+				const deltaX = event.changedTouches[0].clientX - touchStartX;
+				touchStartX = null;
+
+				const SWIPE_THRESHOLD = 40;
+				if (deltaX > SWIPE_THRESHOLD) {
+					goTo(currentIndex() - 1);
+				} else if (deltaX < -SWIPE_THRESHOLD) {
+					goTo(currentIndex() + 1);
+				}
+			},
+			{ passive: true }
+		);
+	});
+</script>
+
 <style>
 	.product-detail {
-		padding-top: 56px;
+		padding-top: 40px;
 	}
 
-	.product-detail__inner {
+	.product-detail__layout {
 		display: grid;
-		grid-template-columns: 0.9fr 1.1fr;
+		grid-template-columns: 320px 1fr;
 		gap: 48px;
-		margin-bottom: 48px;
+		align-items: start;
+		padding-bottom: 72px;
 	}
 
-	.product-detail__image {
+	.product-detail__media {
+		position: sticky;
+		top: 90px;
+	}
+
+	.product-detail__gallery {
+		position: relative;
+	}
+
+	.gallery-radio {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.product-detail__mainstage {
+		position: relative;
+		aspect-ratio: 4 / 3;
 		border-radius: var(--radius-md);
 		overflow: hidden;
-		aspect-ratio: 4 / 3;
+		background: var(--color-bg-muted);
 	}
 
-	.product-detail__image :global(img) {
+	.product-detail__mainstage:focus-visible {
+		outline: 2px solid var(--color-primary);
+		outline-offset: 2px;
+	}
+
+	.mainstage__arrow {
+		position: absolute;
+		top: 50%;
+		z-index: 2;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		border: none;
+		border-radius: 50%;
+		background: rgba(20, 20, 20, 0.45);
+		color: var(--color-white);
+		cursor: pointer;
+		transform: translateY(-50%);
+		transition:
+			background-color 0.15s ease,
+			transform 0.15s ease;
+	}
+
+	.mainstage__arrow svg {
+		width: 20px;
+		height: 20px;
+	}
+
+	.mainstage__arrow--prev {
+		left: 12px;
+	}
+
+	.mainstage__arrow--next {
+		right: 12px;
+	}
+
+	.mainstage__arrow:hover,
+	.mainstage__arrow:focus-visible {
+		background: var(--color-primary);
+	}
+
+	.mainstage__arrow:focus-visible {
+		outline: 2px solid var(--color-white);
+		outline-offset: 2px;
+	}
+
+	.mainstage__arrow:active {
+		transform: translateY(-50%) scale(0.92);
+	}
+
+	.mainstage__slide {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		transition: opacity 0.15s ease;
+	}
+
+	.mainstage__slide.is-active {
+		opacity: 1;
+	}
+
+	.mainstage__slide :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 	}
 
-	.product-detail__back {
-		display: inline-block;
-		font-size: 0.85rem;
-		color: var(--color-graphite-soft);
-		text-decoration: none;
-		margin-bottom: 16px;
+	.product-detail__thumbs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 12px;
 	}
 
-	.product-detail__body h1 {
-		font-size: clamp(1.6rem, 3vw, 2.2rem);
+	.thumb {
+		display: block;
+		width: 56px;
+		height: 56px;
+		border-radius: 8px;
+		overflow: hidden;
+		border: 2px solid transparent;
+		cursor: pointer;
+	}
+
+	.thumb :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.media-cta {
+		margin-top: 16px;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		padding: 18px 20px;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.media-cta p {
+		font-family: var(--font-heading);
+		font-weight: 700;
+		font-size: 0.95rem;
+	}
+
+	.media-cta .btn {
+		width: 100%;
+	}
+
+	.gallery-radio:nth-of-type(1):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(1),
+	.gallery-radio:nth-of-type(2):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(2),
+	.gallery-radio:nth-of-type(3):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(3),
+	.gallery-radio:nth-of-type(4):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(4),
+	.gallery-radio:nth-of-type(5):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(5),
+	.gallery-radio:nth-of-type(6):checked ~ .product-detail__mainstage .mainstage__slide:nth-of-type(6) {
+		opacity: 1;
+	}
+
+	.gallery-radio:nth-of-type(1):checked ~ .product-detail__thumbs .thumb:nth-of-type(1),
+	.gallery-radio:nth-of-type(2):checked ~ .product-detail__thumbs .thumb:nth-of-type(2),
+	.gallery-radio:nth-of-type(3):checked ~ .product-detail__thumbs .thumb:nth-of-type(3),
+	.gallery-radio:nth-of-type(4):checked ~ .product-detail__thumbs .thumb:nth-of-type(4),
+	.gallery-radio:nth-of-type(5):checked ~ .product-detail__thumbs .thumb:nth-of-type(5),
+	.gallery-radio:nth-of-type(6):checked ~ .product-detail__thumbs .thumb:nth-of-type(6) {
+		border-color: var(--color-primary);
+	}
+
+	.product-detail__info h1 {
+		font-size: clamp(1.8rem, 3.5vw, 2.6rem);
 		margin: 10px 0 16px;
 	}
 
 	.product-detail__desc {
 		color: var(--color-graphite-soft);
+		font-size: 1.05rem;
 		line-height: 1.65;
-		margin-bottom: 24px;
+		max-width: 62ch;
+		margin-bottom: 36px;
 	}
 
-	.product-detail__specs {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 14px 24px;
-		margin: 0 0 32px;
+	.detail-block {
 		border-top: 1px solid var(--color-border);
-		padding-top: 20px;
+		padding: 28px 0;
 	}
 
-	.product-detail__spec dt {
+	.detail-heading {
 		font-family: var(--font-heading);
 		font-weight: 700;
 		font-size: 0.8rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
 		color: var(--color-graphite-soft);
+		margin-bottom: 16px;
 	}
 
-	.product-detail__spec dd {
-		margin: 2px 0 0;
-		font-size: 0.95rem;
+	.specs-list {
+		margin: 0;
 	}
 
-	.product-detail__content {
-		max-width: 70ch;
-		line-height: 1.7;
+	.specs-list__row {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 20px;
+		padding: 12px 0;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.specs-list__row:last-child {
+		border-bottom: none;
+	}
+
+	.specs-list__row dt {
+		font-weight: 500;
+		color: var(--color-graphite);
+	}
+
+	.specs-list__row dd {
+		margin: 0;
 		color: var(--color-graphite-soft);
-		padding-bottom: 64px;
-		border-top: 1px solid var(--color-border);
-		padding-top: 32px;
+		text-align: right;
+	}
+
+	.ventajas-list {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 20px;
+	}
+
+	.ventaja {
+		display: flex;
+		align-items: flex-start;
+		gap: 12px;
+	}
+
+	.ventaja p {
+		font-size: 0.92rem;
+		line-height: 1.5;
+		color: var(--color-graphite);
 	}
 
 	@media (max-width: 860px) {
-		.product-detail__inner {
+		.product-detail__layout {
 			grid-template-columns: 1fr;
 		}
 
-		.product-detail__specs {
-			grid-template-columns: 1fr;
+		.product-detail__media {
+			position: static;
+			max-width: 320px;
 		}
 	}
 </style>
