@@ -1,0 +1,114 @@
+backend:
+  name: github
+  repo: adminzolven/zolven-landing-web
+  branch: main
+
+# Los editores necesitan permiso de escritura en el repo de GitHub.
+# La autenticación OAuth la resuelve Netlify (Site settings > Access control > OAuth),
+# no hace falta configurar nada más aquí.
+
+media_folder: src/assets/uploads
+public_folder: src/assets/uploads
+
+collections:
+  - name: 'productos'
+    label: 'Productos'
+    label_singular: 'Producto'
+    folder: 'src/content/productos'
+    create: true
+    slug: '{{slug}}'
+    extension: 'md'
+    format: 'frontmatter'
+    # Cada producto guarda sus propias fotos en su carpeta de assets,
+    # igual que los productos existentes.
+    media_folder: '../../assets/productos/{{slug}}'
+    public_folder: '../../assets/productos/{{slug}}'
+    fields:
+      - { label: 'Nombre', name: 'nombre', widget: 'string' }
+      - label: 'Categoría'
+        name: 'categoria'
+        widget: 'select'
+        options:
+          - 'Acero al Silicio'
+          - 'Núcleos Enrollados'
+          - 'Uni-Core'
+          - 'Laminaciones y Apilados'
+          - 'Núcleos Toroidales'
+      - { label: 'Descripción', name: 'descripcion', widget: 'text' }
+      - { label: 'Imagen principal', name: 'imagen', widget: 'image' }
+      - {
+          label: 'Texto alternativo de la imagen',
+          name: 'imagenAlt',
+          widget: 'string',
+          required: false,
+        }
+      - label: 'Galería (fotos adicionales)'
+        name: 'galeria'
+        widget: 'list'
+        required: false
+        field: { label: 'Foto', name: 'foto', widget: 'image' }
+      - {
+          label: 'Destacado',
+          name: 'destacado',
+          widget: 'boolean',
+          default: false,
+        }
+      - label: 'Datos clave (abrebocas del detalle del producto)'
+        name: 'datosClave'
+        widget: 'list'
+        min: 3
+        max: 4
+        fields:
+          - { label: 'Etiqueta', name: 'label', widget: 'string' }
+          - { label: 'Valor', name: 'valor', widget: 'string' }
+      - label: 'Ventajas'
+        name: 'ventajas'
+        widget: 'list'
+        min: 1
+        max: 3
+        fields:
+          - label: 'Ícono'
+            name: 'icono'
+            widget: 'select'
+            hint: 'Debe existir como src/assets/icons/<nombre>.svg'
+            options:
+              - 'nucleo-laminado-ei'
+              - 'nucleo-toroidal'
+              - 'nucleo-tipo-c'
+              - 'transformador'
+              - 'nucleo-amorfo'
+              - 'acero-electrico'
+              - 'bobina-cobre'
+              - 'aislamiento-nomex'
+              - 'red-transmision'
+              - 'sector-electrico'
+              - 'eficiencia-energetica'
+              - 'aliados-globales'
+              - 'fabricantes'
+              - 'validacion-auditoria'
+              - 'negociacion'
+              - 'precio-origen'
+              - 'importacion'
+              - 'flete-maritimo'
+              - 'aduana-documentos'
+              - 'trazabilidad'
+              - 'almacenamiento'
+              - 'entrega-a-tiempo'
+              - 'garantia'
+              - 'soporte-local'
+              - 'empresa'
+          - { label: 'Texto', name: 'texto', widget: 'string' }
+      - label: 'Aplicaciones'
+        name: 'aplicaciones'
+        widget: 'list'
+        min: 1
+        max: 5
+        # Lista simple de textos (cada item es un string).
+      # NOTA: el campo "specs" (ficha técnica libre clave/valor usada para SEO)
+      # no se expone aquí porque Decap CMS no tiene un widget de "mapa/diccionario"
+      # de claves libres. Para agregar o editar specs hay que hacerlo directamente
+      # en el archivo .md del producto.
+      - label: 'Contenido adicional'
+        name: 'body'
+        widget: 'markdown'
+        required: false
