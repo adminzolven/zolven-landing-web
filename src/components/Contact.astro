@@ -52,7 +52,16 @@ const countryCodes = [
 		<form id="form-contacto" class="contact-form" novalidate>
 			<div class="field field--full">
 				<label for="correo">Correo corporativo</label>
-				<input type="email" id="correo" name="correo" required placeholder="tu@empresa.com" />
+				<input
+					type="email"
+					id="correo"
+					name="correo"
+					required
+					placeholder="tu@empresa.com"
+					pattern="[^\s@]+@[^\s@]+\.[A-Za-z]{2,}"
+					aria-describedby="correo-error"
+				/>
+				<p id="correo-error" class="field-error" role="alert" hidden></p>
 			</div>
 
 			<div class="field">
@@ -79,8 +88,17 @@ const countryCodes = [
 					<select id="pais" name="pais" aria-label="Código de país">
 						{countryCodes.map((c) => <option value={c.code}>{c.label}</option>)}
 					</select>
-					<input type="tel" id="telefono" name="telefono" placeholder="300 000 0000" />
+					<input
+						type="tel"
+						id="telefono"
+						name="telefono"
+						placeholder="300 000 0000"
+						inputmode="tel"
+						pattern="(?=(?:.*[0-9]){7,})[0-9+\-()\s]*"
+						aria-describedby="telefono-error"
+					/>
 				</div>
+				<p id="telefono-error" class="field-error" role="alert" hidden></p>
 			</div>
 
 			<div class="field field--full">
@@ -238,6 +256,15 @@ const countryCodes = [
 		min-height: 1.2em;
 	}
 
+	.field-error {
+		font-size: 0.8rem;
+		color: #c0392b;
+	}
+
+	.field:has(.field-error:not([hidden])) input {
+		border-color: #c0392b;
+	}
+
 	@media (max-width: 900px) {
 		.contact__inner {
 			grid-template-columns: 1fr;
@@ -260,8 +287,74 @@ const countryCodes = [
 	const estado = document.getElementById('form-estado') as HTMLElement;
 	const boton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
 
+	const correoInput = document.getElementById('correo') as HTMLInputElement;
+	const correoError = document.getElementById('correo-error') as HTMLElement;
+	const telefonoInput = document.getElementById('telefono') as HTMLInputElement;
+	const telefonoError = document.getElementById('telefono-error') as HTMLElement;
+
+	const CORREO_REGEX = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+
+	function mostrarError(input: HTMLInputElement, errorEl: HTMLElement, mensaje: string) {
+		input.setCustomValidity(mensaje);
+		errorEl.textContent = mensaje;
+		errorEl.hidden = false;
+	}
+
+	function limpiarError(input: HTMLInputElement, errorEl: HTMLElement) {
+		input.setCustomValidity('');
+		errorEl.textContent = '';
+		errorEl.hidden = true;
+	}
+
+	function validarCorreo() {
+		correoInput.value = correoInput.value.trim();
+
+		if (correoInput.value === '') {
+			limpiarError(correoInput, correoError);
+			return;
+		}
+
+		if (!CORREO_REGEX.test(correoInput.value)) {
+			mostrarError(correoInput, correoError, 'Escribe un correo válido, como nombre@empresa.com');
+		} else {
+			limpiarError(correoInput, correoError);
+		}
+	}
+
+	function validarTelefono() {
+		telefonoInput.value = telefonoInput.value.trim();
+
+		if (telefonoInput.value === '') {
+			limpiarError(telefonoInput, telefonoError);
+			return;
+		}
+
+		const cantidadDigitos = (telefonoInput.value.match(/\d/g) || []).length;
+		if (cantidadDigitos < 7) {
+			mostrarError(
+				telefonoInput,
+				telefonoError,
+				'Escribe un número de teléfono válido, solo con números',
+			);
+		} else {
+			limpiarError(telefonoInput, telefonoError);
+		}
+	}
+
+	correoInput.addEventListener('blur', validarCorreo);
+
+	// Bloquea letras y símbolos no permitidos mientras se escribe (no solo al enviar).
+	telefonoInput.addEventListener('input', () => {
+		const limpio = telefonoInput.value.replace(/[^\d\s+\-()]/g, '');
+		if (limpio !== telefonoInput.value) telefonoInput.value = limpio;
+	});
+	telefonoInput.addEventListener('blur', validarTelefono);
+
 	form.addEventListener('submit', async (event) => {
 		event.preventDefault();
+
+		validarCorreo();
+		validarTelefono();
 
 		if (!form.checkValidity()) {
 			form.reportValidity();
