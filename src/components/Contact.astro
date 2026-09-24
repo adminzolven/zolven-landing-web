@@ -42,6 +42,8 @@ const countryOptions = getCountries()
 	})
 	.filter((pais): pais is NonNullable<typeof pais> => pais !== null)
 	.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+
+const paisPorDefecto = countryOptions.find((c) => c.iso === 'CO') ?? countryOptions[0];
 ---
 
 <section id="hablemos" class="contact">
@@ -105,15 +107,51 @@ const countryOptions = getCountries()
 			<div class="field field--full">
 				<label for="telefono">Teléfono</label>
 				<div class="phone-input">
-					<select id="pais" name="pais" aria-label="País">
-						{
-							countryOptions.map((c) => (
-								<option value={c.iso} selected={c.iso === 'CO'}>
-									{c.bandera} +{c.indicativo}
-								</option>
-							))
-						}
-					</select>
+					<div class="pais-picker" data-pais-picker>
+						<button
+							type="button"
+							class="pais-picker__trigger"
+							id="pais-trigger"
+							aria-haspopup="listbox"
+							aria-expanded="false"
+							aria-controls="pais-listbox"
+						>
+							<span id="pais-trigger-label">
+								{paisPorDefecto.bandera} +{paisPorDefecto.indicativo}
+							</span>
+						</button>
+						<ul
+							class="pais-picker__listbox"
+							id="pais-listbox"
+							role="listbox"
+							aria-label="País"
+							hidden
+						>
+							{
+								countryOptions.map((c) => (
+									<li
+										role="option"
+										class="pais-picker__option"
+										data-iso={c.iso}
+										tabindex="-1"
+										aria-selected={c.iso === 'CO' ? 'true' : 'false'}
+									>
+										{c.bandera} +{c.indicativo}
+									</li>
+								))
+							}
+						</ul>
+						<!-- select real oculto: lleva el value que se envía en el formulario -->
+						<select id="pais" name="pais" class="pais-picker__native" tabindex="-1" aria-hidden="true">
+							{
+								countryOptions.map((c) => (
+									<option value={c.iso} selected={c.iso === 'CO'}>
+										{c.nombre}
+									</option>
+								))
+							}
+						</select>
+					</div>
 					<input
 						type="tel"
 						id="telefono"
@@ -259,9 +297,92 @@ const countryOptions = getCountries()
 		gap: 10px;
 	}
 
-	.phone-input select,
 	.phone-input input {
 		width: 100%;
+	}
+
+	/* Con ~245 países, el <select> nativo puede abrir un desplegable más
+	   alto que la pantalla (y sin límite de scroll confiable entre
+	   navegadores). Por eso el selector de país es un combobox propio:
+	   mismo estilo que el resto de campos, pero con la altura del
+	   desplegable controlada por nosotros. El <select> real queda oculto
+	   y solo se usa para llevar el valor que se envía en el formulario. */
+	.pais-picker {
+		position: relative;
+		width: 100%;
+	}
+
+	.pais-picker__trigger {
+		width: 100%;
+		text-align: left;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 6px;
+		font-family: var(--font-body);
+		font-size: 0.95rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-sm);
+		padding: 12px 14px;
+		background: var(--color-white);
+		color: var(--color-graphite);
+	}
+
+	.pais-picker__trigger::after {
+		content: '▾';
+		color: var(--color-graphite-soft);
+		font-size: 0.8rem;
+	}
+
+	.pais-picker__trigger:focus {
+		outline: 2px solid var(--color-primary);
+		outline-offset: 1px;
+	}
+
+	.pais-picker__listbox {
+		position: absolute;
+		top: calc(100% + 4px);
+		left: 0;
+		z-index: 20;
+		width: max-content;
+		min-width: 100%;
+		max-height: 280px;
+		overflow-y: auto;
+		margin: 0;
+		padding: 4px;
+		list-style: none;
+		background: var(--color-white);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-sm);
+		box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+	}
+
+	.pais-picker__option {
+		padding: 8px 10px;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.9rem;
+		white-space: nowrap;
+	}
+
+	.pais-picker__option:hover,
+	.pais-picker__option:focus {
+		background: var(--color-primary-soft);
+		outline: none;
+	}
+
+	.pais-picker__option[aria-selected='true'] {
+		font-weight: 700;
+		color: var(--color-primary);
+	}
+
+	.pais-picker__native {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		opacity: 0;
+		pointer-events: none;
 	}
 
 	button.btn {
@@ -332,6 +453,98 @@ const countryOptions = getCountries()
 			return iso;
 		}
 	}
+
+	// Combobox propio para el país: el <select> nativo con ~245 opciones puede
+	// abrir un desplegable más alto que la pantalla en algunos navegadores.
+	// Aquí controlamos nosotros el alto máximo y el scroll (ver .pais-picker__listbox).
+	const paisPicker = document.querySelector('[data-pais-picker]') as HTMLElement;
+	const paisTrigger = document.getElementById('pais-trigger') as HTMLButtonElement;
+	const paisTriggerLabel = document.getElementById('pais-trigger-label') as HTMLElement;
+	const paisListbox = document.getElementById('pais-listbox') as HTMLUListElement;
+	const paisOpciones = Array.from(
+		paisListbox.querySelectorAll('[role="option"]'),
+	) as HTMLLIElement[];
+
+	function cerrarListboxPais() {
+		paisListbox.hidden = true;
+		paisTrigger.setAttribute('aria-expanded', 'false');
+	}
+
+	function abrirListboxPais() {
+		paisListbox.hidden = false;
+		paisTrigger.setAttribute('aria-expanded', 'true');
+		const actual = paisOpciones.find((li) => li.dataset.iso === paisSelect.value) ?? paisOpciones[0];
+		actual?.scrollIntoView({ block: 'nearest' });
+		actual?.focus();
+	}
+
+	function seleccionarPais(li: HTMLLIElement) {
+		paisOpciones.forEach((o) => o.setAttribute('aria-selected', 'false'));
+		li.setAttribute('aria-selected', 'true');
+		paisSelect.value = li.dataset.iso ?? '';
+		paisTriggerLabel.textContent = li.textContent ?? '';
+		paisSelect.dispatchEvent(new Event('change', { bubbles: true }));
+	}
+
+	// Mantiene el trigger/listbox sincronizados con el <select> real (p. ej. al
+	// hacer form.reset() tras un envío exitoso, que vuelve a dejar Colombia).
+	function sincronizarPickerConSelect() {
+		const li = paisOpciones.find((o) => o.dataset.iso === paisSelect.value);
+		if (!li) return;
+		paisOpciones.forEach((o) => o.setAttribute('aria-selected', 'false'));
+		li.setAttribute('aria-selected', 'true');
+		paisTriggerLabel.textContent = li.textContent ?? '';
+	}
+
+	form.addEventListener('reset', () => {
+		// El evento "reset" se dispara antes de que los campos tomen su valor
+		// por defecto; se espera un tick para leer el <select> ya reseteado.
+		setTimeout(sincronizarPickerConSelect, 0);
+	});
+
+	paisTrigger.addEventListener('click', () => {
+		if (paisListbox.hidden) abrirListboxPais();
+		else cerrarListboxPais();
+	});
+
+	paisTrigger.addEventListener('keydown', (evento) => {
+		if (evento.key === 'ArrowDown' || evento.key === 'Enter' || evento.key === ' ') {
+			evento.preventDefault();
+			abrirListboxPais();
+		}
+	});
+
+	paisOpciones.forEach((li, indice) => {
+		li.addEventListener('click', () => {
+			seleccionarPais(li);
+			cerrarListboxPais();
+			paisTrigger.focus();
+		});
+
+		li.addEventListener('keydown', (evento) => {
+			if (evento.key === 'ArrowDown') {
+				evento.preventDefault();
+				(paisOpciones[indice + 1] ?? li).focus();
+			} else if (evento.key === 'ArrowUp') {
+				evento.preventDefault();
+				(paisOpciones[indice - 1] ?? li).focus();
+			} else if (evento.key === 'Enter' || evento.key === ' ') {
+				evento.preventDefault();
+				seleccionarPais(li);
+				cerrarListboxPais();
+				paisTrigger.focus();
+			} else if (evento.key === 'Escape') {
+				cerrarListboxPais();
+				paisTrigger.focus();
+			} else if (evento.key === 'Tab') {
+				cerrarListboxPais();
+			}
+		});
+	});
+
+	document.addEventListener('click', (evento) => {
+		if (!paisPicker.contains(evento.target as Node)) cerrarListboxPais();
+	});
 
 	function mostrarError(input: HTMLInputElement, errorEl: HTMLElement, mensaje: string) {
 		input.setCustomValidity(mensaje);
