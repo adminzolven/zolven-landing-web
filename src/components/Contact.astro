@@ -49,18 +49,10 @@ const countryCodes = [
 			</div>
 		</div>
 
-		<form
-			class="contact-form"
-			name="contacto"
-			method="POST"
-			data-netlify="true"
-			action="/gracias"
-		>
-			<input type="hidden" name="form-name" value="contacto" />
-
+		<form id="form-contacto" class="contact-form" novalidate>
 			<div class="field field--full">
-				<label for="email">Correo corporativo</label>
-				<input type="email" id="email" name="email" required placeholder="tu@empresa.com" />
+				<label for="correo">Correo corporativo</label>
+				<input type="email" id="correo" name="correo" required placeholder="tu@empresa.com" />
 			</div>
 
 			<div class="field">
@@ -96,7 +88,18 @@ const countryCodes = [
 				<textarea id="mensaje" name="mensaje" rows="5" required></textarea>
 			</div>
 
+			<!-- Campo trampa anti-spam: invisible para las personas, no lo borres -->
+			<input
+				type="text"
+				name="website"
+				class="contact-form__trap"
+				tabindex="-1"
+				autocomplete="off"
+				aria-hidden="true"
+			/>
+
 			<button type="submit" class="btn btn-primary field--full">Enviar solicitud</button>
+			<p id="form-estado" class="form-estado field--full" role="status" aria-live="polite"></p>
 		</form>
 	</div>
 </section>
@@ -221,6 +224,20 @@ const countryCodes = [
 		margin-top: 8px;
 	}
 
+	.contact-form__trap {
+		position: absolute;
+		left: -9999px;
+		width: 1px;
+		height: 1px;
+		opacity: 0;
+	}
+
+	.form-estado {
+		font-size: 0.9rem;
+		color: var(--color-graphite-soft);
+		min-height: 1.2em;
+	}
+
 	@media (max-width: 900px) {
 		.contact__inner {
 			grid-template-columns: 1fr;
@@ -233,3 +250,42 @@ const countryCodes = [
 		}
 	}
 </style>
+
+<script>
+	// URL de la aplicación web de Apps Script que guarda los envíos en Google Sheets.
+	const URL_SHEETS =
+		'https://script.google.com/macros/s/AKfycbwt1e79sA-d28lKvn8tW9jdl1Xv_PNqU7aF2kvmYZo6iXq5yxvpyf6PB0kssh8yCNum/exec';
+
+	const form = document.getElementById('form-contacto') as HTMLFormElement;
+	const estado = document.getElementById('form-estado') as HTMLElement;
+	const boton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+	form.addEventListener('submit', async (event) => {
+		event.preventDefault();
+
+		if (!form.checkValidity()) {
+			form.reportValidity();
+			return;
+		}
+
+		boton.disabled = true;
+		estado.textContent = 'Enviando…';
+
+		try {
+			const respuesta = await fetch(URL_SHEETS, {
+				method: 'POST',
+				body: new URLSearchParams(new FormData(form) as any),
+			});
+			const resultado = await respuesta.json();
+			if (!resultado.ok) throw new Error(resultado.error);
+
+			form.reset();
+			estado.textContent = 'Mensaje enviado. Te responderemos pronto.';
+		} catch (error) {
+			estado.textContent =
+				'No se pudo enviar el mensaje. Revisa tu conexión e inténtalo de nuevo.';
+		} finally {
+			boton.disabled = false;
+		}
+	});
+</script>
