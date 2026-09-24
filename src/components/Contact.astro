@@ -1,5 +1,6 @@
 ---
 import Icon from './Icon.astro';
+import { getCountries, getCountryCallingCode } from 'libphonenumber-js/min';
 
 const contactCards = [
 	{
@@ -14,14 +15,33 @@ const contactCards = [
 	},
 ];
 
-const countryCodes = [
-	{ code: '+57', label: '🇨🇴 +57' },
-	{ code: '+1', label: '🇺🇸 +1' },
-	{ code: '+52', label: '🇲🇽 +52' },
-	{ code: '+34', label: '🇪🇸 +34' },
-	{ code: '+51', label: '🇵🇪 +51' },
-	{ code: '+56', label: '🇨🇱 +56' },
-];
+// Bandera a partir del código ISO (dos indicadores regionales Unicode).
+function banderaEmoji(iso: string) {
+	return iso
+		.toUpperCase()
+		.replace(/./g, (letra) => String.fromCodePoint(127397 + letra.charCodeAt(0)));
+}
+
+const nombresPaisesEs = new Intl.DisplayNames(['es'], { type: 'region' });
+
+// value del <option> = código ISO (lo que necesita libphonenumber-js para
+// validar); el texto visible se mantiene compacto (bandera + indicativo)
+// para no cambiar el ancho/diseño del selector.
+const countryOptions = getCountries()
+	.map((iso) => {
+		try {
+			return {
+				iso,
+				nombre: nombresPaisesEs.of(iso) ?? iso,
+				bandera: banderaEmoji(iso),
+				indicativo: getCountryCallingCode(iso),
+			};
+		} catch {
+			return null;
+		}
+	})
+	.filter((pais): pais is NonNullable<typeof pais> => pais !== null)
+	.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 ---
 
 <section id="hablemos" class="contact">
@@ -85,8 +105,14 @@ const countryCodes = [
 			<div class="field field--full">
 				<label for="telefono">Teléfono</label>
 				<div class="phone-input">
-					<select id="pais" name="pais" aria-label="Código de país">
-						{countryCodes.map((c) => <option value={c.code}>{c.label}</option>)}
+					<select id="pais" name="pais" aria-label="País">
+						{
+							countryOptions.map((c) => (
+								<option value={c.iso} selected={c.iso === 'CO'}>
+									{c.bandera} +{c.indicativo}
+								</option>
+							))
+						}
 					</select>
 					<input
 						type="tel"
@@ -94,7 +120,7 @@ const countryCodes = [
 						name="telefono"
 						placeholder="300 000 0000"
 						inputmode="tel"
-						pattern="(?=(?:.*[0-9]){7,})[0-9+\-()\s]*"
+						pattern="[0-9+\-()\s]*"
 						aria-describedby="telefono-error"
 					/>
 				</div>
@@ -279,6 +305,9 @@ const countryCodes = [
 </style>
 
 <script>
+	import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
+	import type { CountryCode } from 'libphonenumber-js/min';
+
 	// URL de la aplicación web de Apps Script que guarda los envíos en Google Sheets.
 	const URL_SHEETS =
 		'https://script.google.com/macros/s/AKfycbwt1e79sA-d28lKvn8tW9jdl1Xv_PNqU7aF2kvmYZo6iXq5yxvpyf6PB0kssh8yCNum/exec';
@@ -291,8 +320,18 @@ const countryCodes = [
 	const correoError = document.getElementById('correo-error') as HTMLElement;
 	const telefonoInput = document.getElementById('telefono') as HTMLInputElement;
 	const telefonoError = document.getElementById('telefono-error') as HTMLElement;
+	const paisSelect = document.getElementById('pais') as HTMLSelectElement;
 
 	const CORREO_REGEX = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+
+	const nombresPaises = new Intl.DisplayNames(['es'], { type: 'region' });
+	function nombrePais(iso: string) {
+		try {
+			return nombresPaises.of(iso) ?? iso;
+		} catch {
+			return iso;
+		}
+	}
 
 	function mostrarError(input: HTMLInputElement, errorEl: HTMLElement, mensaje: string) {
 		input.setCustomValidity(mensaje);
@@ -329,12 +368,17 @@ const countryCodes = [
 			return;
 		}
 
-		const cantidadDigitos = (telefonoInput.value.match(/\d/g) || []).length;
-		if (cantidadDigitos < 7) {
+		// Si el número trae indicativo (+52...) libphonenumber-js lo detecta y
+		// valida contra ese país, aunque no coincida con el select.
+		const paisSeleccionado = paisSelect.value as CountryCode;
+		const numero = parsePhoneNumberFromString(telefonoInput.value, paisSeleccionado);
+
+		if (!numero || !numero.isValid()) {
+			const paisDelMensaje = numero?.country ?? paisSeleccionado;
 			mostrarError(
 				telefonoInput,
 				telefonoError,
-				'Escribe un número de teléfono válido, solo con números',
+				`El número no es válido para ${nombrePais(paisDelMensaje)}`,
 			);
 		} else {
 			limpiarError(telefonoInput, telefonoError);
@@ -349,6 +393,7 @@ const countryCodes = [
 		if (limpio !== telefonoInput.value) telefonoInput.value = limpio;
 	});
 	telefonoInput.addEventListener('blur', validarTelefono);
+	paisSelect.addEventListener('change', validarTelefono);
 
 	form.addEventListener('submit', async (event) => {
 		event.preventDefault();
@@ -364,10 +409,22 @@ const countryCodes = [
 		boton.disabled = true;
 		estado.textContent = 'Enviando…';
 
+		// La hoja de Google guarda el nombre del país (no el código ISO) y el
+		// teléfono ya normalizado en formato internacional.
+		const datos = new FormData(form);
+		datos.set('pais', nombrePais(paisSelect.value));
+
+		if (telefonoInput.value !== '') {
+			const numero = parsePhoneNumberFromString(telefonoInput.value, paisSelect.value as CountryCode);
+			if (numero?.isValid()) {
+				datos.set('telefono', numero.formatInternational());
+			}
+		}
+
 		try {
 			const respuesta = await fetch(URL_SHEETS, {
 				method: 'POST',
-				body: new URLSearchParams(new FormData(form) as any),
+				body: new URLSearchParams(datos as any),
 			});
 			const resultado = await respuesta.json();
 			if (!resultado.ok) throw new Error(resultado.error);
