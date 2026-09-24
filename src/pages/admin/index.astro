@@ -10,8 +10,13 @@
 	</head>
 	<body>
 		<!-- Backend: GitHub (con Netlify como proxy de OAuth). No se usa Netlify Identity. -->
+		<!-- decap-cms-app (a diferencia del paquete "decap-cms") no se auto-inicializa: -->
+		<!-- necesita este contenedor y una llamada explícita a CMS.init(). -->
+		<div id="nc-root"></div>
 		<script>
-			import 'decap-cms-app';
+			import CMS from 'decap-cms-app';
+
+			CMS.init();
 		</script>
 	</body>
 </html>
