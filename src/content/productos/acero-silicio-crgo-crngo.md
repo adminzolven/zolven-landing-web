@@ -12,7 +12,7 @@ galeria:
   - ../../assets/productos/acero-silicio/002Slit coil- finished product 02.jpg
   - ../../assets/productos/acero-silicio/002Slit coil- finished product 03.jpg
   - ../../assets/productos/acero-silicio/002Slit coil- finished product 04.jpg
-  - ../../assets/productos/map-body-ntrabajamos-con-proveedores-líderes-globales-como-baosteel-wisco-shougang-nnippon-posco-y-ak-para-ofrecer-acero-al-silicio-crgo-y-crngo-con-nespecificación-técnica-verificada-de-fábrica-en-el-rango-de-espesores-y-ncalidades-que-tu/foto.jpg
+  - ../../assets/productos/acero-silicio/005coil-render.jpg
 destacado: true
 datosClave:
   - label: Espesor

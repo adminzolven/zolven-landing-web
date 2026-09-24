@@ -10,13 +10,26 @@ backend:
 media_folder: src/assets/uploads
 public_folder: src/assets/uploads
 
+# Los slugs (nombres de archivo y carpetas de medios) se transliteran a
+# ASCII, así los nombres con tildes/ñ nunca generan rutas con caracteres
+# especiales.
+slug:
+  encoding: 'ascii'
+  clean_accents: true
+
 collections:
   - name: 'productos'
     label: 'Productos'
     label_singular: 'Producto'
     folder: 'src/content/productos'
     create: true
-    slug: '{{slug}}'
+    # El slug (y las carpetas de imágenes de abajo) se generan a partir del
+    # nombre del producto. Sin esto, Decap no tenía un campo "title" ni
+    # identifier_field y terminaba usando el contenido de otros campos
+    # (p. ej. la descripción larga) como si fuera el identificador, lo que
+    # producía nombres de carpeta kilométricos.
+    identifier_field: 'nombre'
+    slug: '{{fields.nombre}}'
     extension: 'md'
     format: 'frontmatter'
     # Cada producto guarda sus propias fotos en su carpeta de assets,
