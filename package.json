@@ -15,6 +15,7 @@
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.2",
+    "decap-cms-app": "^3.16.3",
     "gsap": "^3.15.0"
   },
   "allowScripts": {
