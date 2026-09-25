@@ -13,6 +13,7 @@ galeria:
   - ../../assets/productos/acero-silicio/002Slit coil- finished product 03.jpg
   - ../../assets/productos/acero-silicio/002Slit coil- finished product 04.jpg
   - ../../assets/productos/acero-silicio/005coil-render.jpg
+  - ../../assets/productos/acero-al-silicio-crgo-crngo/diseno-sin-titulo.png
 destacado: true
 datosClave:
   - label: Espesor
