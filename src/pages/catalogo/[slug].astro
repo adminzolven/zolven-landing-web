@@ -18,6 +18,10 @@ const { nombre, categoria, descripcion, imagen, imagenAlt, galeria, specs, datos
 	product.data;
 
 const images = [imagen, ...(galeria ?? [])];
+// Fotos de baja resolución (aislantes, tomadas del PDF del proveedor): se
+// muestran más pequeñas y centradas para que no se vean pixeladas. Quitar
+// esta línea cuando lleguen las fotos en alta resolución.
+const fotosCompactas = categoria === 'Materiales Aislantes';
 const galleryName = `gallery-${product.id}`;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -76,7 +80,7 @@ const productSchema = {
 					}
 
 					<div
-						class="product-detail__mainstage"
+						class:list={['product-detail__mainstage', { 'is-compact': fotosCompactas }]}
 						tabindex={images.length > 1 ? 0 : -1}
 						role={images.length > 1 ? 'group' : undefined}
 						aria-label={images.length > 1 ? 'Galería de imágenes del producto' : undefined}
@@ -338,6 +342,24 @@ const productSchema = {
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
+	}
+
+	.product-detail__mainstage.is-compact {
+		background: #fff;
+		border: 1px solid var(--color-border);
+	}
+
+	.product-detail__mainstage.is-compact .mainstage__slide {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.product-detail__mainstage.is-compact .mainstage__slide :global(img) {
+		width: auto;
+		height: auto;
+		max-width: min(60%, 300px);
+		max-height: 70%;
 	}
 
 	.product-detail__thumbs {
