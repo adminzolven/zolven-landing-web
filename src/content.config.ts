@@ -12,6 +12,7 @@ const productos = defineCollection({
 				'Uni-Core',
 				'Laminaciones y Apilados',
 				'Núcleos Toroidales',
+				'Materiales Aislantes',
 			]),
 			descripcion: z.string(),
 			imagen: image(),

@@ -47,6 +47,7 @@ collections:
           - 'Uni-Core'
           - 'Laminaciones y Apilados'
           - 'Núcleos Toroidales'
+          - 'Materiales Aislantes'
       - { label: 'Descripción', name: 'descripcion', widget: 'text' }
       - { label: 'Imagen principal', name: 'imagen', widget: 'image' }
       - {
